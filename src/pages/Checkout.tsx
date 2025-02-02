@@ -32,14 +32,14 @@ export default function Checkout(): JSX.Element {
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  
+
   // Form state
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
-  
+
   // Shipping address state
   const [shippingAddress1, setShippingAddress1] = useState("");
   const [shippingCity, setShippingCity] = useState("");
@@ -63,10 +63,10 @@ export default function Checkout(): JSX.Element {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
     try {
       const customerInfo: CustomerInfo = {
@@ -78,39 +78,42 @@ export default function Checkout(): JSX.Element {
           street: shippingAddress1,
           city: shippingCity,
           state: shippingState,
-          zipCode: shippingZip
+          zipCode: shippingZip,
         },
-        notes
+        notes,
       };
 
-      console.log('Submitting order with customer info:', customerInfo);
-      const response = await orderService.createOrder(customerInfo, items);
-      console.log('Order creation response:', response);
+      console.log("Submitting order with customer info:", customerInfo);
+      const order = await orderService.createOrder(customerInfo, items);
+      console.log("Order creation response:", order);
 
-      if (response.success && response.data.order) {
-        console.log('Order created successfully, navigating to confirmation');
-        dispatch(clearCart());
-        navigate('/order-confirmation', {
-          state: {
-            orderNumber: response.data.order.id,
-            total: response.data.order.total,
-            customerInfo
-          },
-          replace: true
-        });
-      } else {
-        console.error('Invalid response format:', response);
-        setErrorMessage('Received invalid response from server');
-      }
+      // Navigate with the order details
+      dispatch(clearCart());
+      navigate("/order-confirmation", {
+        state: {
+          orderNumber: order.id,
+          total: parseFloat(order.totalAmount), // Convert string amount to number
+          customerInfo,
+        },
+        replace: true,
+      });
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error("Error creating order:", error);
       if (error instanceof Error) {
         setErrorMessage(error.message);
       } else {
-        setErrorMessage('An unexpected error occurred');
+        setErrorMessage("An unexpected error occurred");
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handlePlaceOrder = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const form = document.querySelector('form');
+    if (form) {
+      form.dispatchEvent(new Event('submit', { cancelable: true }));
     }
   };
 
@@ -274,14 +277,13 @@ export default function Checkout(): JSX.Element {
           </Grid>
           <Grid item xs={12}>
             <Typography variant="body2">
-              Address: {shippingAddress1}, {shippingCity}, {shippingState} {shippingZip}
+              Address: {shippingAddress1}, {shippingCity}, {shippingState}{" "}
+              {shippingZip}
             </Typography>
           </Grid>
           {notes && (
             <Grid item xs={12}>
-              <Typography variant="body2">
-                Notes: {notes}
-              </Typography>
+              <Typography variant="body2">Notes: {notes}</Typography>
             </Grid>
           )}
         </Grid>
@@ -334,39 +336,49 @@ export default function Checkout(): JSX.Element {
 
       <Card>
         <CardContent>
-          {getStepContent(activeStep)}
+          <form onSubmit={handleSubmit}>
+            {getStepContent(activeStep)}
 
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-            {activeStep !== 0 && (
-              <Button onClick={handleBack} sx={{ mr: 1 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+              <Button 
+                type="button"
+                onClick={handleBack} 
+                sx={{ minWidth: 200 }} 
+                disabled={activeStep === 0}
+              >
                 Back
               </Button>
-            )}
-            {activeStep === steps.length - 1 ? (
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                sx={{ minWidth: 200 }}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Submitting..." : "Place Order"}
-              </Button>
-            ) : (
-              <Button variant="contained" onClick={handleNext}>
-                Next
-              </Button>
-            )}
-          </Box>
+              {activeStep === steps.length - 1 ? (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  sx={{ minWidth: 200 }}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Placing Order..." : "Place Order"}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="contained"
+                  onClick={handleNext}
+                  sx={{ minWidth: 200 }}
+                >
+                  Next
+                </Button>
+              )}
+            </Box>
+          </form>
         </CardContent>
       </Card>
 
       <Snackbar
         open={!!errorMessage}
         autoHideDuration={6000}
-        onClose={() => setErrorMessage('')}
+        onClose={() => setErrorMessage("")}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity="error" onClose={() => setErrorMessage('')}>
+        <Alert severity="error" onClose={() => setErrorMessage("")}>
           {errorMessage}
         </Alert>
       </Snackbar>
