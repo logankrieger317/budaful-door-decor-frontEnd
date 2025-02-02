@@ -92,7 +92,7 @@ export default function Checkout(): JSX.Element {
       navigate("/order-confirmation", {
         state: {
           orderNumber: order.id,
-          total: parseFloat(order.totalAmount), // Convert string amount to number
+          total: parseFloat(order.totalAmount),
           customerInfo,
         },
         replace: true,
@@ -106,14 +106,6 @@ export default function Checkout(): JSX.Element {
       }
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handlePlaceOrder = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const form = document.querySelector('form');
-    if (form) {
-      form.dispatchEvent(new Event('submit', { cancelable: true }));
     }
   };
 
