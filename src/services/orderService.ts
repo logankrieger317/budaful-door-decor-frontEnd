@@ -44,18 +44,31 @@ interface OrderResponse {
 export const orderService = {
   async createOrder(customerInfo: CustomerInfo, cartItems: CartItem[]): Promise<Order> {
     try {
-      // Map cart items to order items
-      const orderItems = cartItems.map(item => ({
-        productSku: item.sku,
-        quantity: item.quantity,
-        price: Number(item.price).toFixed(2) // Ensure price is formatted with 2 decimal places
-      }));
+      // Map cart items to order items with proper price formatting
+      const orderItems = cartItems.map(item => {
+        const price = Number(item.price);
+        if (isNaN(price)) {
+          throw new Error(`Invalid price for item ${item.sku}`);
+        }
+        return {
+          productSku: item.sku,
+          quantity: item.quantity,
+          price: price.toFixed(2)
+        };
+      });
 
       // Calculate total with proper decimal handling
       const total = cartItems.reduce((sum, item) => {
-        const itemTotal = Number(item.price) * item.quantity;
-        return sum + itemTotal;
+        const price = Number(item.price);
+        if (isNaN(price)) {
+          throw new Error(`Invalid price for item ${item.sku}`);
+        }
+        return sum + (price * item.quantity);
       }, 0);
+
+      if (isNaN(total)) {
+        throw new Error('Invalid total amount calculation');
+      }
 
       // Create order data
       const orderData = {
@@ -66,7 +79,7 @@ export const orderService = {
         phone: customerInfo.phone,
         notes: customerInfo.notes,
         items: orderItems,
-        totalAmount: total.toFixed(2), // Format total with 2 decimal places
+        totalAmount: total.toFixed(2),
         status: 'pending',
         paymentStatus: 'pending'
       };

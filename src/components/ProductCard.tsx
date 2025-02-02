@@ -44,7 +44,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   if (!product) {
     return (
-      <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <Card
+        className="h-full cursor-pointer transition-transform duration-200 ease-in-out hover:scale-105"
+        sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+      >
         <Box
           sx={{
             height: 200,
@@ -98,7 +101,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <Card
+      className="h-full cursor-pointer transition-transform duration-200 ease-in-out hover:scale-105"
+      sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+    >
       <CardMedia
         component="img"
         height="200"
