@@ -10,7 +10,7 @@ interface OrderItem {
 }
 
 interface Order {
-  id: string;
+  id?: string;
   customerEmail: string;
   customerName: string;
   shippingAddress: string;
@@ -56,7 +56,9 @@ export const orderService = {
         phone: customerInfo.phone,
         notes: customerInfo.notes,
         items: orderItems,
-        total
+        total,
+        status: 'pending',
+        paymentStatus: 'pending'
       };
 
       console.log('Sending order data to:', `${API_URL}/api/orders`);
@@ -64,23 +66,8 @@ export const orderService = {
       
       const response = await axios.post<ApiResponse<OrderResponse>>(`${API_URL}/api/orders`, orderData);
       console.log('Server response:', JSON.stringify(response.data, null, 2));
-      
-      // Add success property if it's not in the response
-      const responseWithSuccess = {
-        ...response.data,
-        success: true,
-        data: {
-          order: {
-            ...response.data.data,
-            id: response.data.data.id || 'temp-id',
-            total: total
-          },
-          clientSecret: response.data.data.clientSecret || ''
-        }
-      };
-      
-      console.log('Modified response:', JSON.stringify(responseWithSuccess, null, 2));
-      return responseWithSuccess;
+
+      return response.data;
     } catch (error) {
       console.error('Error details:', error);
       // Type guard for Axios error
