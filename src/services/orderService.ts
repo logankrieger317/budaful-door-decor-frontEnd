@@ -3,39 +3,46 @@ import type { CartItem, CustomerInfo } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-interface OrderItem {
+export interface OrderItem {
+  id?: string;
   productSku: string;
   quantity: number;
   price: number;
+  priceAtTime?: string;
+  orderId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-interface Order {
-  id?: string;
+export interface Order {
+  id: string;
   customerEmail: string;
   customerName: string;
   shippingAddress: string;
   billingAddress: string;
   phone?: string;
   notes?: string;
-  total: number;
+  totalAmount: string;
   status: string;
   paymentStatus: string;
   items: OrderItem[];
+  createdAt?: string;
+  updatedAt?: string;
+  paymentIntentId?: string | null;
 }
 
 interface ApiResponse<T> {
-  success: boolean;
+  status: 'success' | 'error';
   data: T;
   message?: string;
 }
 
 interface OrderResponse {
   order: Order;
-  clientSecret: string;
 }
 
 export const orderService = {
-  async createOrder(customerInfo: CustomerInfo, cartItems: CartItem[]): Promise<ApiResponse<OrderResponse>> {
+  async createOrder(customerInfo: CustomerInfo, cartItems: CartItem[]): Promise<Order> {
     try {
       // Map cart items to order items
       const orderItems = cartItems.map(item => ({
@@ -56,7 +63,7 @@ export const orderService = {
         phone: customerInfo.phone,
         notes: customerInfo.notes,
         items: orderItems,
-        total,
+        totalAmount: total.toString(),
         status: 'pending',
         paymentStatus: 'pending'
       };
@@ -67,7 +74,11 @@ export const orderService = {
       const response = await axios.post<ApiResponse<OrderResponse>>(`${API_URL}/api/orders`, orderData);
       console.log('Server response:', JSON.stringify(response.data, null, 2));
 
-      return response.data;
+      if (response.data.status === 'success' && response.data.data.order) {
+        return response.data.data.order;
+      }
+      
+      throw new Error('Invalid server response format');
     } catch (error) {
       console.error('Error details:', error);
       // Type guard for Axios error

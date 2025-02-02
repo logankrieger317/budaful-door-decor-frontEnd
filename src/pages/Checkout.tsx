@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import { RootState } from "../store/store";
 import { clearCart } from "../store/cartSlice";
-import orderService from "../services/orderService";
+import orderService, { Order } from "../services/orderService";
 import { CustomerInfo, CartItem } from "../types";
 
 const steps = ["Review Order", "Customer Information", "Confirm Order"];
@@ -84,7 +84,7 @@ export default function Checkout(): JSX.Element {
       };
 
       console.log("Submitting order with customer info:", customerInfo);
-      const order = await orderService.createOrder(customerInfo, items);
+      const order: Order = await orderService.createOrder(customerInfo, items);
       console.log("Order creation response:", order);
 
       // Navigate with the order details
