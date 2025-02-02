@@ -48,11 +48,14 @@ export const orderService = {
       const orderItems = cartItems.map(item => ({
         productSku: item.sku,
         quantity: item.quantity,
-        price: item.price
+        price: Number(item.price).toFixed(2) // Ensure price is formatted with 2 decimal places
       }));
 
-      // Calculate total amount
-      const total = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+      // Calculate total with proper decimal handling
+      const total = cartItems.reduce((sum, item) => {
+        const itemTotal = Number(item.price) * item.quantity;
+        return sum + itemTotal;
+      }, 0);
 
       // Create order data
       const orderData = {
@@ -63,7 +66,7 @@ export const orderService = {
         phone: customerInfo.phone,
         notes: customerInfo.notes,
         items: orderItems,
-        totalAmount: total.toString(),
+        totalAmount: total.toFixed(2), // Format total with 2 decimal places
         status: 'pending',
         paymentStatus: 'pending'
       };
