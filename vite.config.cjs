@@ -1,9 +1,7 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import type { UserConfig } from 'vite';
+const { defineConfig } = require('vite');
+const react = require('@vitejs/plugin-react');
 
-// https://vitejs.dev/config/
-export default defineConfig({
+module.exports = defineConfig({
   plugins: [react()],
   base: '/',
   build: {
@@ -13,7 +11,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: undefined,
-        assetFileNames: (assetInfo: { name?: string }) => {
+        assetFileNames: (assetInfo) => {
           const name = assetInfo.name || '';
           if (name.endsWith('.jpeg') || name.endsWith('.jpg') || name.endsWith('.png')) {
             return 'images/[name].[hash].[ext]'
@@ -33,4 +31,4 @@ export default defineConfig({
       }
     }
   }
-} as UserConfig);
+});
