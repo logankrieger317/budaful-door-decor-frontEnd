@@ -24,14 +24,28 @@ app.use(compression());
 app.use('/api', createProxyMiddleware({
   target: process.env.BACKEND_URL || 'https://budafuldoordecorbackend-production.up.railway.app',
   changeOrigin: true,
+  secure: false, // Don't verify SSL cert
+  timeout: 30000, // 30 second timeout
+  proxyTimeout: 31000, // slightly longer than timeout
   pathRewrite: {
-    '^/api': '/api', // no rewrite needed, keeping the /api prefix
+    '^/api': '/api',
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    // Log the outgoing request
+    console.log(`Proxying ${req.method} ${req.url} to ${proxyReq.path}`);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    // Log the response
+    console.log(`Received ${proxyRes.statusCode} for ${req.method} ${req.url}`);
   },
   onError: (err, req, res) => {
     console.error('Proxy Error:', err);
-    res.status(500).json({ message: 'Error connecting to backend service' });
+    res.status(500).json({ 
+      message: 'Error connecting to backend service',
+      error: err.message
+    });
   },
-  logLevel: 'debug', // Add debug logging
+  logLevel: 'debug',
 }));
 
 // Serve static files from the React app build directory
@@ -44,4 +58,5 @@ app.get('*', function(req, res) {
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  console.log(`Proxying API requests to: ${process.env.BACKEND_URL || 'https://budafuldoordecorbackend-production.up.railway.app'}`);
 });

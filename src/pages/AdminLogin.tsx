@@ -8,6 +8,7 @@ import {
   Typography,
   Paper,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import api from '../config/api';
 
@@ -15,11 +16,13 @@ const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     try {
       const response = await api.post('/api/admin/login', {
@@ -27,11 +30,17 @@ const AdminLogin = () => {
         password,
       });
 
-      localStorage.setItem('adminToken', response.data.token);
-      navigate('/admin/dashboard');
+      if (response.data?.token) {
+        localStorage.setItem('adminToken', response.data.token);
+        navigate('/admin/dashboard');
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Invalid credentials');
+      setError(err.message || 'Invalid credentials');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,6 +61,7 @@ const AdminLogin = () => {
               margin="normal"
               required
               type="email"
+              disabled={loading}
             />
             <TextField
               fullWidth
@@ -61,14 +71,16 @@ const AdminLogin = () => {
               margin="normal"
               required
               type="password"
+              disabled={loading}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              Sign In
+              {loading ? <CircularProgress size={24} /> : 'Sign In'}
             </Button>
           </form>
         </Paper>
