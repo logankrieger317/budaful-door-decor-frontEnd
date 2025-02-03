@@ -5,12 +5,17 @@ interface ApiErrorResponse {
   error?: string;
 }
 
-// Using relative URLs since we're proxying through the frontend server
+// Use direct backend URL
+const API_URL = process.env.NODE_ENV === 'production'
+  ? 'https://budafuldoordecorbackend-production.up.railway.app'
+  : 'http://localhost:3001';
+
 const api = axios.create({
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 29000, // 29 seconds (slightly less than proxy timeout)
+  timeout: 10000, // 10 seconds timeout
 });
 
 // Add a request interceptor to include the auth token
@@ -19,17 +24,22 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  console.log(`Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`);
   return config;
 });
 
 // Add response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`Received ${response.status} response from: ${response.config.url}`);
+    return response;
+  },
   (error: AxiosError<ApiErrorResponse>) => {
     console.error('API Error:', {
       status: error.response?.status,
       message: error.message,
       url: error.config?.url,
+      data: error.response?.data,
     });
 
     if (error.code === 'ECONNABORTED') {

@@ -25,10 +25,13 @@ const AdminLogin = () => {
     setLoading(true);
     
     try {
-      const response = await api.post('/api/admin/login', {
+      // Remove /api prefix since we're using direct backend URL
+      const response = await api.post('/admin/login', {
         email,
         password,
       });
+
+      console.log('Login response:', response.data);
 
       if (response.data?.token) {
         localStorage.setItem('adminToken', response.data.token);
