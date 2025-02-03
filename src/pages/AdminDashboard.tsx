@@ -39,11 +39,10 @@ interface TabPanelProps {
 interface OrderItem {
   id: string;
   quantity: number;
-  priceAtTime: number | string;
+  priceAtTime: number;
   Product: {
     name: string;
     sku: string;
-    price: number;
   };
 }
 
@@ -59,7 +58,7 @@ interface Order {
   shippingAddress: string;
   billingAddress: string;
   notes?: string;
-  orderItems: OrderItem[];
+  items: OrderItem[];
 }
 
 interface Product {
@@ -229,7 +228,7 @@ function OrderRow({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {order.orderItems.map((item) => (
+                  {order.items?.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.Product.name}</TableCell>
                       <TableCell>{item.Product.sku}</TableCell>
@@ -238,8 +237,7 @@ function OrderRow({
                         ${parseFloat(item.priceAtTime.toString()).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
-                        $
-                        {(
+                        ${(
                           item.quantity *
                           parseFloat(item.priceAtTime.toString())
                         ).toFixed(2)}
