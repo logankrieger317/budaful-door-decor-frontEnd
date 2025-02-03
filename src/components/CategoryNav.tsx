@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AppBar, Toolbar, Button, Container, useTheme, useMediaQuery, Menu, MenuItem } from '@mui/material';
+import { AppBar, Toolbar, Button, Container, useTheme, useMediaQuery, Menu, MenuItem, Tabs, Tab } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 export const categories = [
@@ -26,7 +26,7 @@ export default function CategoryNav(): JSX.Element {
     if (categoryId === 'all') {
       navigate('/products');
     } else {
-      navigate(`/products?category=${categoryId}`);
+      navigate(`/category/${categoryId}`);
     }
     setAnchorEl(null);
   };
@@ -104,25 +104,44 @@ export default function CategoryNav(): JSX.Element {
     >
       <Container maxWidth="lg">
         <Toolbar sx={{ justifyContent: 'center', gap: 2 }}>
-          {categories.map((category) => (
-            <Button
-              key={category.id}
-              onClick={() => handleCategoryClick(category.id)}
+          <Tabs
+            value={currentCategory}
+            onChange={(_, newValue) => {
+              if (newValue === 'all') {
+                navigate('/products');
+              } else {
+                navigate(`/category/${newValue}`);
+              }
+            }}
+            variant="scrollable"
+            scrollButtons="auto"
+            aria-label="Product Categories"
+            sx={{
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                minWidth: 'auto',
+                px: 3,
+              },
+            }}
+          >
+            <Tab
+              label="All Products"
+              value="all"
               sx={{
-                color: currentCategory === category.id ? 'primary.main' : 'text.primary',
-                borderBottom: currentCategory === category.id ? 2 : 0,
-                borderColor: 'primary.main',
-                borderRadius: 0,
-                px: 2,
-                '&:hover': {
-                  borderBottom: 2,
-                  backgroundColor: 'transparent',
-                },
+                color: currentCategory === 'all' ? 'primary.main' : 'text.primary',
               }}
-            >
-              {category.name}
-            </Button>
-          ))}
+            />
+            {categories.map((category) => (
+              <Tab
+                key={category.id}
+                label={category.name}
+                value={category.id}
+                sx={{
+                  color: currentCategory === category.id ? 'primary.main' : 'text.primary',
+                }}
+              />
+            ))}
+          </Tabs>
         </Toolbar>
       </Container>
     </AppBar>

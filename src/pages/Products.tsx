@@ -5,9 +5,12 @@ import {
   Grid,
   Box,
   CircularProgress,
+  Breadcrumbs,
+  Link,
 } from "@mui/material";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
+import SEO from "../components/SEO";
 import { productsApi } from "../api/products";
 import { Product } from "../types";
 
@@ -21,12 +24,17 @@ const categories = [
 ];
 
 export default function Products(): JSX.Element {
-  const [searchParams] = useSearchParams();
+  const { categoryId } = useParams();
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const currentCategory = searchParams.get("category") || "all";
+  const currentCategory = categoryId || "all";
+  
+  const categoryName = categories.find((cat) => cat.id === currentCategory)?.name || "All Products";
+  const pageTitle = `${categoryName} - Budaful Door Designs`;
+  const pageDescription = `Shop our selection of ${categoryName.toLowerCase()}. Find premium quality ribbons and door decorations for your creative projects.`;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -38,12 +46,9 @@ export default function Products(): JSX.Element {
         if (currentCategory === "all") {
           fetchedProducts = await productsApi.getAllProducts();
         } else {
-          fetchedProducts = await productsApi.getProductsByCategory(
-            currentCategory
-          );
+          fetchedProducts = await productsApi.getProductsByCategory(currentCategory);
         }
 
-        console.log("Fetched products:", fetchedProducts); // Debug log
         setProducts(fetchedProducts);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -84,7 +89,22 @@ export default function Products(): JSX.Element {
 
   return (
     <Box>
+      <SEO 
+        title={pageTitle}
+        description={pageDescription}
+        keywords={`${categoryName.toLowerCase()}, door decorations, ribbons, crafting supplies`}
+      />
+      
       <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 4 }}>
+          <Link color="inherit" href="/">
+            Home
+          </Link>
+          <Typography color="text.primary">
+            {categoryName}
+          </Typography>
+        </Breadcrumbs>
+
         <Typography
           variant="h4"
           component="h1"
@@ -94,10 +114,7 @@ export default function Products(): JSX.Element {
             color: "text.primary",
           }}
         >
-          {currentCategory === "all"
-            ? "All Products"
-            : categories.find((cat) => cat.id === currentCategory)?.name ||
-              "Products"}
+          {categoryName}
         </Typography>
 
         {products.length === 0 ? (
