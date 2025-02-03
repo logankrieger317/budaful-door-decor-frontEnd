@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Container,
@@ -20,14 +20,13 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   Grid,
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import api from '../config/api';
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import api from "../config/api";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -71,8 +70,14 @@ interface Product {
   imageUrl?: string;
 }
 
-const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-const PAYMENT_STATUSES = ['pending', 'completed', 'failed', 'refunded'];
+const ORDER_STATUSES = [
+  "pending",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+];
+const PAYMENT_STATUSES = ["pending", "completed", "failed", "refunded"];
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -83,11 +88,20 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-function OrderRow({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (orderId: string, updates: any) => Promise<void> }) {
+function OrderRow({
+  order,
+  onOrderUpdate,
+}: {
+  order: Order;
+  onOrderUpdate: (orderId: string, updates: any) => Promise<void>;
+}) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleStatusChange = async (field: 'status' | 'paymentStatus', value: string) => {
+  const handleStatusChange = async (
+    field: "status" | "paymentStatus",
+    value: string
+  ) => {
     setLoading(true);
     try {
       await onOrderUpdate(order.id, { [field]: value });
@@ -100,7 +114,7 @@ function OrderRow({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (orde
 
   return (
     <>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+      <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
         <TableCell>
           <IconButton
             aria-label="expand row"
@@ -114,16 +128,22 @@ function OrderRow({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (orde
         <TableCell>{order.customerName}</TableCell>
         <TableCell>
           <div>{order.customerEmail}</div>
-          {order.phone && <div style={{ color: 'gray', fontSize: '0.9em' }}>{order.phone}</div>}
+          {order.phone && (
+            <div style={{ color: "gray", fontSize: "0.9em" }}>
+              {order.phone}
+            </div>
+          )}
         </TableCell>
-        <TableCell>${parseFloat(order.totalAmount.toString()).toFixed(2)}</TableCell>
+        <TableCell>
+          ${parseFloat(order.totalAmount.toString()).toFixed(2)}
+        </TableCell>
         <TableCell>
           <FormControl size="small" fullWidth disabled={loading}>
             <Select
               value={order.status}
-              onChange={(e) => handleStatusChange('status', e.target.value)}
+              onChange={(e) => handleStatusChange("status", e.target.value)}
             >
-              {ORDER_STATUSES.map(status => (
+              {ORDER_STATUSES.map((status) => (
                 <MenuItem key={status} value={status}>
                   {status.charAt(0).toUpperCase() + status.slice(1)}
                 </MenuItem>
@@ -135,9 +155,11 @@ function OrderRow({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (orde
           <FormControl size="small" fullWidth disabled={loading}>
             <Select
               value={order.paymentStatus}
-              onChange={(e) => handleStatusChange('paymentStatus', e.target.value)}
+              onChange={(e) =>
+                handleStatusChange("paymentStatus", e.target.value)
+              }
             >
-              {PAYMENT_STATUSES.map(status => (
+              {PAYMENT_STATUSES.map((status) => (
                 <MenuItem key={status} value={status}>
                   {status.charAt(0).toUpperCase() + status.slice(1)}
                 </MenuItem>
@@ -156,7 +178,10 @@ function OrderRow({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (orde
                   <Typography variant="subtitle2" gutterBottom>
                     Shipping Address
                   </Typography>
-                  <Typography variant="body2" style={{ whiteSpace: 'pre-line' }}>
+                  <Typography
+                    variant="body2"
+                    style={{ whiteSpace: "pre-line" }}
+                  >
                     {order.shippingAddress}
                   </Typography>
                 </Grid>
@@ -164,7 +189,10 @@ function OrderRow({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (orde
                   <Typography variant="subtitle2" gutterBottom>
                     Billing Address
                   </Typography>
-                  <Typography variant="body2" style={{ whiteSpace: 'pre-line' }}>
+                  <Typography
+                    variant="body2"
+                    style={{ whiteSpace: "pre-line" }}
+                  >
                     {order.billingAddress}
                   </Typography>
                 </Grid>
@@ -173,7 +201,10 @@ function OrderRow({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (orde
                     <Typography variant="subtitle2" gutterBottom>
                       Notes
                     </Typography>
-                    <Typography variant="body2" style={{ whiteSpace: 'pre-line' }}>
+                    <Typography
+                      variant="body2"
+                      style={{ whiteSpace: "pre-line" }}
+                    >
                       {order.notes}
                     </Typography>
                   </Grid>
@@ -198,9 +229,15 @@ function OrderRow({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (orde
                       <TableCell>{item.Product.name}</TableCell>
                       <TableCell>{item.Product.sku}</TableCell>
                       <TableCell align="right">{item.quantity}</TableCell>
-                      <TableCell align="right">${parseFloat(item.priceAtTime.toString()).toFixed(2)}</TableCell>
                       <TableCell align="right">
-                        ${(item.quantity * parseFloat(item.priceAtTime.toString())).toFixed(2)}
+                        ${parseFloat(item.priceAtTime.toString()).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        $
+                        {(
+                          item.quantity *
+                          parseFloat(item.priceAtTime.toString())
+                        ).toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -218,36 +255,38 @@ const AdminDashboard = () => {
   const [tab, setTab] = useState(0);
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem("adminToken");
     if (!token) {
-      navigate('/admin/login');
+      navigate("/admin/login");
       return;
     }
 
     const fetchData = async () => {
       try {
         const [ordersRes, productsRes] = await Promise.all([
-          api.get<Order[]>('/api/admin/orders'),
-          api.get<Product[]>('/api/admin/products')
+          api.get<Order[]>("/api/admin/orders"),
+          api.get<Product[]>("/api/admin/products"),
         ]);
 
-        console.log('Orders:', ordersRes.data);
-        console.log('Products:', productsRes.data);
+        console.log("Orders:", ordersRes.data);
+        console.log("Products:", productsRes.data);
 
         setOrders(ordersRes.data);
         setProducts(productsRes.data);
-        setError('');
+        setError("");
       } catch (error: any) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
         if (error?.response?.status === 401) {
-          localStorage.removeItem('adminToken');
-          navigate('/admin/login');
+          localStorage.removeItem("adminToken");
+          navigate("/admin/login");
         } else {
-          setError(error?.response?.data?.message || 'Error loading dashboard data');
+          setError(
+            error?.response?.data?.message || "Error loading dashboard data"
+          );
         }
       }
     };
@@ -258,48 +297,49 @@ const AdminDashboard = () => {
   const handleOrderUpdate = async (orderId: string, updates: any) => {
     try {
       const response = await api.put(`/api/admin/orders/${orderId}`, updates);
-      setOrders(orders.map(order => 
-        order.id === orderId ? response.data : order
-      ));
-      setError('');
+      setOrders(
+        orders.map((order) => (order.id === orderId ? response.data : order))
+      );
+      setError("");
     } catch (error: any) {
-      console.error('Error updating order:', error);
+      console.error("Error updating order:", error);
       if (error?.response?.status === 401) {
-        localStorage.removeItem('adminToken');
-        navigate('/admin/login');
+        localStorage.removeItem("adminToken");
+        navigate("/admin/login");
       }
       throw error;
     }
   };
 
   const handleDeleteProduct = async (sku: string) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    if (!window.confirm("Are you sure you want to delete this product?"))
+      return;
 
     try {
       await api.delete(`/api/admin/products/${sku}`);
-      setProducts(products.filter(p => p.sku !== sku));
-      setError('');
+      setProducts(products.filter((p) => p.sku !== sku));
+      setError("");
     } catch (error: any) {
-      console.error('Error deleting product:', error);
+      console.error("Error deleting product:", error);
       if (error?.response?.status === 401) {
-        localStorage.removeItem('adminToken');
-        navigate('/admin/login');
+        localStorage.removeItem("adminToken");
+        navigate("/admin/login");
       } else {
-        setError(error?.response?.data?.message || 'Error deleting product');
+        setError(error?.response?.data?.message || "Error deleting product");
       }
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    navigate('/admin/login');
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
+    navigate("/admin/login");
   };
 
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 4, mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
           <Typography variant="h4" component="h1">
             Admin Dashboard
           </Typography>
@@ -307,24 +347,24 @@ const AdminDashboard = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => navigate('/admin/products/new')}
+              onClick={() => navigate("/admin/products/new")}
               sx={{ mr: 2 }}
             >
               Add Product
             </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={handleLogout}
-            >
+            <Button variant="outlined" color="secondary" onClick={handleLogout}>
               Logout
             </Button>
           </Box>
         </Box>
 
-        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
-        <Paper sx={{ width: '100%', mb: 2 }}>
+        <Paper sx={{ width: "100%", mb: 2 }}>
           <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
             <Tab label={`Orders (${orders.length})`} />
             <Tab label={`Products (${products.length})`} />
@@ -347,7 +387,11 @@ const AdminDashboard = () => {
                 </TableHead>
                 <TableBody>
                   {orders.map((order) => (
-                    <OrderRow key={order.id} order={order} onOrderUpdate={handleOrderUpdate} />
+                    <OrderRow
+                      key={order.id}
+                      order={order}
+                      onOrderUpdate={handleOrderUpdate}
+                    />
                   ))}
                   {orders.length === 0 && (
                     <TableRow>
@@ -380,11 +424,15 @@ const AdminDashboard = () => {
                       <TableCell>{product.sku}</TableCell>
                       <TableCell>{product.name}</TableCell>
                       <TableCell>{product.category}</TableCell>
-                      <TableCell>${parseFloat(product.price.toString()).toFixed(2)}</TableCell>
+                      <TableCell>
+                        ${parseFloat(product.price.toString()).toFixed(2)}
+                      </TableCell>
                       <TableCell>{product.quantity}</TableCell>
                       <TableCell>
                         <IconButton
-                          onClick={() => navigate(`/admin/products/${product.sku}/edit`)}
+                          onClick={() =>
+                            navigate(`/admin/products/${product.sku}/edit`)
+                          }
                           color="primary"
                         >
                           <EditIcon />
