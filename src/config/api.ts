@@ -1,12 +1,7 @@
 import axios from 'axios';
 
-// Use environment variable in production, fallback to localhost in development
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://budafuldoordecor.com'
-  : 'http://localhost:3001';
-
+// Using relative URLs since we're proxying through the frontend server
 const api = axios.create({
-  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -2,6 +2,7 @@ import express from 'express';
 import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -18,6 +19,19 @@ app.use(express.json());
 
 // Enable gzip compression
 app.use(compression());
+
+// Proxy /api requests to the backend
+app.use('/api', createProxyMiddleware({
+  target: process.env.BACKEND_URL || 'http://localhost:3001',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api': '/api', // no rewrite needed, keeping the /api prefix
+  },
+  onError: (err, req, res) => {
+    console.error('Proxy Error:', err);
+    res.status(500).json({ message: 'Error connecting to backend service' });
+  },
+}));
 
 // Serve static files from the React app build directory
 app.use(express.static(join(__dirname, 'dist')));
