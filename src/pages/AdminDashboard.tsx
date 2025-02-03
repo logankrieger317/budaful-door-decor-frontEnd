@@ -16,9 +16,12 @@ import {
   Button,
   IconButton,
   Alert,
+  Collapse,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import api from '../config/api';
 
 interface TabPanelProps {
@@ -27,22 +30,26 @@ interface TabPanelProps {
   value: number;
 }
 
+interface OrderItem {
+  id: string;
+  quantity: number;
+  priceAtTime: number;
+  Product: {
+    name: string;
+    sku: string;
+    price: number;
+  };
+}
+
 interface Order {
   id: string;
   customerName: string;
   customerEmail: string;
   totalAmount: number;
   status: string;
+  paymentStatus: string;
   createdAt: string;
-  OrderItems: Array<{
-    id: string;
-    quantity: number;
-    Product: {
-      name: string;
-      sku: string;
-      price: number;
-    };
-  }>;
+  items: OrderItem[];
 }
 
 interface Product {
@@ -61,6 +68,68 @@ function TabPanel(props: TabPanelProps) {
     <div hidden={value !== index} {...other}>
       {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
+  );
+}
+
+function OrderRow({ order }: { order: Order }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+        <TableCell>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell>{order.id.slice(0, 8)}...</TableCell>
+        <TableCell>{order.customerName}</TableCell>
+        <TableCell>{order.customerEmail}</TableCell>
+        <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
+        <TableCell>{order.status}</TableCell>
+        <TableCell>{order.paymentStatus}</TableCell>
+        <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              <Typography variant="h6" gutterBottom component="div">
+                Order Items
+              </Typography>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Product</TableCell>
+                    <TableCell>SKU</TableCell>
+                    <TableCell align="right">Quantity</TableCell>
+                    <TableCell align="right">Price</TableCell>
+                    <TableCell align="right">Total</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {order.items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.Product.name}</TableCell>
+                      <TableCell>{item.Product.sku}</TableCell>
+                      <TableCell align="right">{item.quantity}</TableCell>
+                      <TableCell align="right">${item.priceAtTime.toFixed(2)}</TableCell>
+                      <TableCell align="right">
+                        ${(item.quantity * item.priceAtTime).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
   );
 }
 
@@ -85,6 +154,9 @@ const AdminDashboard = () => {
           api.get<Product[]>('/api/admin/products')
         ]);
 
+        console.log('Orders:', ordersRes.data);
+        console.log('Products:', productsRes.data);
+
         setOrders(ordersRes.data);
         setProducts(productsRes.data);
         setError('');
@@ -94,7 +166,7 @@ const AdminDashboard = () => {
           localStorage.removeItem('adminToken');
           navigate('/admin/login');
         } else {
-          setError('Error loading dashboard data');
+          setError(error?.response?.data?.message || 'Error loading dashboard data');
         }
       }
     };
@@ -115,13 +187,14 @@ const AdminDashboard = () => {
         localStorage.removeItem('adminToken');
         navigate('/admin/login');
       } else {
-        setError('Error deleting product');
+        setError(error?.response?.data?.message || 'Error deleting product');
       }
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
     navigate('/admin/login');
   };
 
@@ -155,8 +228,8 @@ const AdminDashboard = () => {
 
         <Paper sx={{ width: '100%', mb: 2 }}>
           <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
-            <Tab label="Orders" />
-            <Tab label="Products" />
+            <Tab label={`Orders (${orders.length})`} />
+            <Tab label={`Products (${products.length})`} />
           </Tabs>
 
           <TabPanel value={tab} index={0}>
@@ -164,27 +237,27 @@ const AdminDashboard = () => {
               <Table>
                 <TableHead>
                   <TableRow>
+                    <TableCell />
                     <TableCell>Order ID</TableCell>
                     <TableCell>Customer</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Total</TableCell>
                     <TableCell>Status</TableCell>
+                    <TableCell>Payment</TableCell>
                     <TableCell>Date</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {orders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>{order.id}</TableCell>
-                      <TableCell>{order.customerName}</TableCell>
-                      <TableCell>{order.customerEmail}</TableCell>
-                      <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
-                      <TableCell>{order.status}</TableCell>
-                      <TableCell>
-                        {new Date(order.createdAt).toLocaleDateString()}
+                    <OrderRow key={order.id} order={order} />
+                  ))}
+                  {orders.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center">
+                        No orders found
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -213,7 +286,7 @@ const AdminDashboard = () => {
                       <TableCell>{product.quantity}</TableCell>
                       <TableCell>
                         <IconButton
-                          onClick={() => navigate(`/admin/products/${product.sku}`)}
+                          onClick={() => navigate(`/admin/products/${product.sku}/edit`)}
                           color="primary"
                         >
                           <EditIcon />
@@ -227,6 +300,13 @@ const AdminDashboard = () => {
                       </TableCell>
                     </TableRow>
                   ))}
+                  {products.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">
+                        No products found
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
