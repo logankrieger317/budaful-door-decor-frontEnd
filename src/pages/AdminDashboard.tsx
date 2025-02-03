@@ -32,6 +32,8 @@ import {
   useTheme,
   useMediaQuery,
   Chip,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -66,6 +68,7 @@ interface Order {
   status: string;
   paymentStatus: string;
   createdAt: string;
+  deletedAt: string | null;
   shippingAddress: string;
   billingAddress: string;
   notes?: string;
@@ -98,7 +101,8 @@ type SortField =
   | "totalAmount"
   | "status"
   | "paymentStatus"
-  | "createdAt";
+  | "createdAt"
+  | "deletedAt";
 type SortDirection = "asc" | "desc";
 
 function TabPanel(props: TabPanelProps) {
@@ -114,12 +118,16 @@ function OrderRow({
   order,
   onOrderUpdate,
   onOrderDelete,
+  onOrderRestore,
   isMobile,
+  showDeleted,
 }: {
   order: Order;
   onOrderUpdate: (orderId: string, updates: any) => Promise<void>;
   onOrderDelete: (orderId: string) => Promise<void>;
+  onOrderRestore: (orderId: string) => Promise<void>;
   isMobile: boolean;
+  showDeleted: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -149,12 +157,22 @@ function OrderRow({
     }
   };
 
+  const handleRestore = async () => {
+    try {
+      await onOrderRestore(order.id);
+    } catch (error) {
+      console.error("Error restoring order:", error);
+    }
+  };
+
   if (isMobile) {
     return (
       <>
         <Card sx={{ mb: 2 }}>
           <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography variant="subtitle2" color="text.secondary">
                 Order #{order.id}
               </Typography>
@@ -162,11 +180,11 @@ function OrderRow({
                 {new Date(order.createdAt).toLocaleDateString()}
               </Typography>
             </Box>
-            
+
             <Typography variant="h6" gutterBottom>
               {order.customerName}
             </Typography>
-            
+
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 {order.customerEmail}
@@ -178,9 +196,11 @@ function OrderRow({
               )}
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
               <Chip
-                label={`$${parseFloat(order.totalAmount.toString()).toFixed(2)}`}
+                label={`$${parseFloat(order.totalAmount.toString()).toFixed(
+                  2
+                )}`}
                 color="primary"
                 variant="outlined"
               />
@@ -218,7 +238,9 @@ function OrderRow({
               <Button
                 size="small"
                 onClick={() => setOpen(!open)}
-                startIcon={open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                startIcon={
+                  open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />
+                }
               >
                 {open ? "Hide" : "Show"} Order Details
               </Button>
@@ -235,8 +257,11 @@ function OrderRow({
                       {item.Product.name} (SKU: {item.Product.sku})
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {item.quantity} x ${parseFloat(item.priceAtTime.toString()).toFixed(2)} = 
-                      ${(item.quantity * parseFloat(item.priceAtTime.toString())).toFixed(2)}
+                      {item.quantity} x $
+                      {parseFloat(item.priceAtTime.toString()).toFixed(2)} = $
+                      {(
+                        item.quantity * parseFloat(item.priceAtTime.toString())
+                      ).toFixed(2)}
                     </Typography>
                   </Box>
                 ))}
@@ -269,14 +294,25 @@ function OrderRow({
             </Collapse>
           </CardContent>
           <CardActions>
-            <Button
-              size="small"
-              color="error"
-              onClick={() => setDeleteDialogOpen(true)}
-              startIcon={<DeleteIcon />}
-            >
-              Delete Order
-            </Button>
+            {order.deletedAt ? (
+              <Button
+                size="small"
+                color="primary"
+                onClick={handleRestore}
+                startIcon={<EditIcon />}
+              >
+                Restore Order
+              </Button>
+            ) : (
+              <Button
+                size="small"
+                color="error"
+                onClick={() => setDeleteDialogOpen(true)}
+                startIcon={<DeleteIcon />}
+              >
+                Delete Order
+              </Button>
+            )}
           </CardActions>
         </Card>
 
@@ -286,13 +322,17 @@ function OrderRow({
           onClose={() => setDeleteDialogOpen(false)}
           aria-labelledby="delete-dialog-title"
         >
-          <DialogTitle id="delete-dialog-title">Confirm Delete Order</DialogTitle>
+          <DialogTitle id="delete-dialog-title">
+            Confirm Delete Order
+          </DialogTitle>
           <DialogContent>
             <Typography>
-              Are you sure you want to delete order #{order.id}? This action cannot be undone.
+              Are you sure you want to delete order #{order.id}? This action
+              cannot be undone.
             </Typography>
             <Typography variant="body2" color="error" sx={{ mt: 2 }}>
-              All order information including customer details and order items will be permanently deleted.
+              All order information including customer details and order items
+              will be permanently deleted.
             </Typography>
           </DialogContent>
           <DialogActions>
@@ -362,15 +402,39 @@ function OrderRow({
           </FormControl>
         </TableCell>
         <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+        {showDeleted && (
+          <TableCell>
+            {order.deletedAt ? (
+              <Typography variant="body2" color="error">
+                {new Date(order.deletedAt).toLocaleDateString()}
+              </Typography>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                -
+              </Typography>
+            )}
+          </TableCell>
+        )}
         <TableCell>
-          <IconButton
-            aria-label="delete order"
-            size="small"
-            onClick={() => setDeleteDialogOpen(true)}
-            color="error"
-          >
-            <DeleteIcon />
-          </IconButton>
+          {order.deletedAt ? (
+            <Button
+              size="small"
+              color="primary"
+              onClick={handleRestore}
+              startIcon={<EditIcon />}
+            >
+              Restore Order
+            </Button>
+          ) : (
+            <IconButton
+              aria-label="delete order"
+              size="small"
+              onClick={() => setDeleteDialogOpen(true)}
+              color="error"
+            >
+              <DeleteIcon />
+            </IconButton>
+          )}
         </TableCell>
       </TableRow>
 
@@ -383,10 +447,12 @@ function OrderRow({
         <DialogTitle id="delete-dialog-title">Confirm Delete Order</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete order #{order.id}? This action cannot be undone.
+            Are you sure you want to delete order #{order.id}? This action
+            cannot be undone.
           </Typography>
           <Typography variant="body2" color="error" sx={{ mt: 2 }}>
-            All order information including customer details and order items will be permanently deleted.
+            All order information including customer details and order items
+            will be permanently deleted.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -482,9 +548,10 @@ function OrderRow({
 
 const AdminDashboard = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [tab, setTab] = useState(0);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [showDeleted, setShowDeleted] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState("");
   const [sortField, setSortField] = useState<SortField>("createdAt");
@@ -542,6 +609,10 @@ const AdminDashboard = () => {
         case "createdAt":
           compareA = new Date(a.createdAt).getTime();
           compareB = new Date(b.createdAt).getTime();
+          break;
+        case "deletedAt":
+          compareA = a.deletedAt ? new Date(a.deletedAt).getTime() : 0;
+          compareB = b.deletedAt ? new Date(b.deletedAt).getTime() : 0;
           break;
         default:
           return 0;
@@ -602,7 +673,7 @@ const AdminDashboard = () => {
     const fetchData = async () => {
       try {
         const [ordersRes, productsRes] = await Promise.all([
-          api.get<Order[]>("/api/admin/orders"),
+          api.get<Order[]>(`/api/admin/orders?showDeleted=${showDeleted}`),
           api.get<Product[]>("/api/admin/products"),
         ]);
 
@@ -623,7 +694,7 @@ const AdminDashboard = () => {
     };
 
     fetchData();
-  }, [navigate]);
+  }, [navigate, showDeleted]);
 
   const handleOrderUpdate = async (orderId: string, updates: any) => {
     try {
@@ -644,9 +715,9 @@ const AdminDashboard = () => {
 
   const handleOrderDelete = async (orderId: string) => {
     try {
-      await api.delete(`/api/admin/orders/${orderId}`);
-      setOrders(orders.filter((order) => order.id !== orderId));
-      showSnackbar("Order deleted successfully", "success");
+      const response = await api.delete(`/api/admin/orders/${orderId}`);
+      setOrders(orders.map((order) => (order.id === orderId ? response.data : order)));
+      showSnackbar("Order marked as deleted", "success");
     } catch (error: any) {
       console.error("Error deleting order:", error);
       if (error?.response?.status === 401) {
@@ -655,6 +726,25 @@ const AdminDashboard = () => {
       } else {
         showSnackbar(
           error?.response?.data?.message || "Error deleting order",
+          "error"
+        );
+      }
+    }
+  };
+
+  const handleOrderRestore = async (orderId: string) => {
+    try {
+      const response = await api.post(`/api/admin/orders/${orderId}/restore`);
+      setOrders(orders.map((order) => (order.id === orderId ? response.data : order)));
+      showSnackbar("Order restored successfully", "success");
+    } catch (error: any) {
+      console.error("Error restoring order:", error);
+      if (error?.response?.status === 401) {
+        localStorage.removeItem("adminToken");
+        navigate("/admin/login");
+      } else {
+        showSnackbar(
+          error?.response?.data?.message || "Error restoring order",
           "error"
         );
       }
@@ -721,6 +811,17 @@ const AdminDashboard = () => {
           </Tabs>
 
           <TabPanel value={tab} index={0}>
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showDeleted}
+                    onChange={(e) => setShowDeleted(e.target.checked)}
+                  />
+                }
+                label="Show Deleted Orders"
+              />
+            </Box>
             {isMobile ? (
               <Box sx={{ mt: 2 }}>
                 {sortOrders(orders).map((order) => (
@@ -729,7 +830,9 @@ const AdminDashboard = () => {
                     order={order}
                     onOrderUpdate={handleOrderUpdate}
                     onOrderDelete={handleOrderDelete}
+                    onOrderRestore={handleOrderRestore}
                     isMobile={isMobile}
+                    showDeleted={showDeleted}
                   />
                 ))}
                 {orders.length === 0 && (
@@ -745,12 +848,21 @@ const AdminDashboard = () => {
                     <TableRow>
                       <TableCell style={{ width: "50px" }} />
                       <SortableTableCell field="id" label="Order Number" />
-                      <SortableTableCell field="customerName" label="Customer" />
+                      <SortableTableCell
+                        field="customerName"
+                        label="Customer"
+                      />
                       <SortableTableCell field="contact" label="Contact" />
                       <SortableTableCell field="totalAmount" label="Total" />
                       <SortableTableCell field="status" label="Status" />
-                      <SortableTableCell field="paymentStatus" label="Payment" />
+                      <SortableTableCell
+                        field="paymentStatus"
+                        label="Payment"
+                      />
                       <SortableTableCell field="createdAt" label="Date" />
+                      {showDeleted && (
+                        <SortableTableCell field="deletedAt" label="Deleted At" />
+                      )}
                       <TableCell style={{ width: "50px" }}>Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -761,7 +873,9 @@ const AdminDashboard = () => {
                         order={order}
                         onOrderUpdate={handleOrderUpdate}
                         onOrderDelete={handleOrderDelete}
+                        onOrderRestore={handleOrderRestore}
                         isMobile={isMobile}
+                        showDeleted={showDeleted}
                       />
                     ))}
                     {orders.length === 0 && (
