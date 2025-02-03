@@ -715,8 +715,8 @@ const AdminDashboard = () => {
 
   const handleOrderDelete = async (orderId: string) => {
     try {
-      const response = await api.delete(`/api/admin/orders/${orderId}`);
-      setOrders(orders.map((order) => (order.id === orderId ? response.data : order)));
+      await api.delete(`/api/admin/orders/${orderId}`);
+      setOrders(orders.filter((order) => order.id !== orderId));
       showSnackbar("Order marked as deleted", "success");
     } catch (error: any) {
       console.error("Error deleting order:", error);
