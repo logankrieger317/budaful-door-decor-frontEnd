@@ -14,12 +14,15 @@ import Cart from "./components/Cart";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail"; // Added import statement
+import ProductDetail from "./pages/ProductDetail";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import NotFound from "./pages/NotFound";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminProductEditor from "./pages/AdminProductEditor";
 import { HelmetProvider } from 'react-helmet-async';
 
 const theme = createTheme({
@@ -97,6 +100,9 @@ function AppContent(): JSX.Element {
           <Route path="/contact" element={<Contact />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/products/:productId" element={<AdminProductEditor />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Box>
