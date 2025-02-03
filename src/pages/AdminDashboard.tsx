@@ -88,9 +88,9 @@ const AdminDashboard = () => {
         setOrders(ordersRes.data);
         setProducts(productsRes.data);
         setError('');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching data:', error);
-        if (error.response?.status === 401) {
+        if (error?.response?.status === 401) {
           localStorage.removeItem('adminToken');
           navigate('/admin/login');
         } else {
@@ -109,9 +109,9 @@ const AdminDashboard = () => {
       await api.delete(`/api/admin/products/${sku}`);
       setProducts(products.filter(p => p.sku !== sku));
       setError('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting product:', error);
-      if (error.response?.status === 401) {
+      if (error?.response?.status === 401) {
         localStorage.removeItem('adminToken');
         navigate('/admin/login');
       } else {

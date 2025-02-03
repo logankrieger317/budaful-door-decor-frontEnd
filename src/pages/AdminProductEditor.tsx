@@ -57,9 +57,9 @@ const AdminProductEditor = () => {
         try {
           const response = await api.get(`/api/admin/products/${productId}`);
           setForm(response.data);
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error fetching product:', error);
-          if (error.response?.status === 401) {
+          if (error?.response?.status === 401) {
             localStorage.removeItem('adminToken');
             navigate('/admin/login');
           } else {
@@ -69,7 +69,7 @@ const AdminProductEditor = () => {
       };
       fetchProduct();
     }
-  }, [productId, isEditing, navigate]);
+  }, [isEditing, productId, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,9 +81,9 @@ const AdminProductEditor = () => {
       }
       setSuccess('Product saved successfully');
       setTimeout(() => navigate('/admin/dashboard'), 1500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving product:', error);
-      if (error.response?.status === 401) {
+      if (error?.response?.status === 401) {
         localStorage.removeItem('adminToken');
         navigate('/admin/login');
       } else {
