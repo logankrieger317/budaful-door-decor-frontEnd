@@ -26,6 +26,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import api from "../config/api";
 
 interface TabPanelProps {
@@ -50,14 +52,14 @@ interface Order {
   customerName: string;
   customerEmail: string;
   phone?: string;
-  totalAmount: number | string;
+  totalAmount: number;
   status: string;
   paymentStatus: string;
   createdAt: string;
-  items: OrderItem[];
   shippingAddress: string;
   billingAddress: string;
   notes?: string;
+  orderItems: OrderItem[];
 }
 
 interface Product {
@@ -78,6 +80,9 @@ const ORDER_STATUSES = [
   "cancelled",
 ];
 const PAYMENT_STATUSES = ["pending", "completed", "failed", "refunded"];
+
+type SortField = 'customerName' | 'contact' | 'totalAmount' | 'status' | 'paymentStatus' | 'createdAt';
+type SortDirection = 'asc' | 'desc';
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -224,7 +229,7 @@ function OrderRow({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {order.items.map((item) => (
+                  {order.orderItems.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.Product.name}</TableCell>
                       <TableCell>{item.Product.sku}</TableCell>
@@ -256,7 +261,76 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState("");
+  const [sortField, setSortField] = useState<SortField>('createdAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const navigate = useNavigate();
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortOrders = (ordersToSort: Order[]) => {
+    return [...ordersToSort].sort((a, b) => {
+      let compareA: string | number;
+      let compareB: string | number;
+
+      switch (sortField) {
+        case 'customerName':
+          compareA = a.customerName.toLowerCase();
+          compareB = b.customerName.toLowerCase();
+          break;
+        case 'contact':
+          compareA = (a.customerEmail + (a.phone || '')).toLowerCase();
+          compareB = (b.customerEmail + (b.phone || '')).toLowerCase();
+          break;
+        case 'totalAmount':
+          compareA = a.totalAmount;
+          compareB = b.totalAmount;
+          break;
+        case 'status':
+          compareA = a.status.toLowerCase();
+          compareB = b.status.toLowerCase();
+          break;
+        case 'paymentStatus':
+          compareA = a.paymentStatus.toLowerCase();
+          compareB = b.paymentStatus.toLowerCase();
+          break;
+        case 'createdAt':
+          compareA = new Date(a.createdAt).getTime();
+          compareB = new Date(b.createdAt).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      if (compareA < compareB) return sortDirection === 'asc' ? -1 : 1;
+      if (compareA > compareB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const SortableTableCell = ({ field, label }: { field: SortField; label: string }) => (
+    <TableCell
+      onClick={() => handleSort(field)}
+      sx={{ 
+        cursor: 'pointer',
+        userSelect: 'none',
+        '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' }
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        {label}
+        {sortField === field && (
+          sortDirection === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />
+        )}
+      </Box>
+    </TableCell>
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -375,23 +449,18 @@ const AdminDashboard = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell />
-                    <TableCell>Order ID</TableCell>
-                    <TableCell>Customer</TableCell>
-                    <TableCell>Contact</TableCell>
-                    <TableCell>Total</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Payment</TableCell>
-                    <TableCell>Date</TableCell>
+                    <TableCell style={{ width: '50px' }} />
+                    <SortableTableCell field="customerName" label="Customer" />
+                    <SortableTableCell field="contact" label="Contact" />
+                    <SortableTableCell field="totalAmount" label="Total" />
+                    <SortableTableCell field="status" label="Status" />
+                    <SortableTableCell field="paymentStatus" label="Payment" />
+                    <SortableTableCell field="createdAt" label="Date" />
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {orders.map((order) => (
-                    <OrderRow
-                      key={order.id}
-                      order={order}
-                      onOrderUpdate={handleOrderUpdate}
-                    />
+                  {sortOrders(orders).map((order) => (
+                    <OrderRow key={order.id} order={order} onOrderUpdate={handleOrderUpdate} />
                   ))}
                   {orders.length === 0 && (
                     <TableRow>
