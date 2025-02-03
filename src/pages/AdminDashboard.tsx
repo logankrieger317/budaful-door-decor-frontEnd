@@ -33,7 +33,7 @@ interface TabPanelProps {
 interface OrderItem {
   id: string;
   quantity: number;
-  priceAtTime: number;
+  priceAtTime: number | string;
   Product: {
     name: string;
     sku: string;
@@ -117,9 +117,9 @@ function OrderRow({ order }: { order: Order }) {
                       <TableCell>{item.Product.name}</TableCell>
                       <TableCell>{item.Product.sku}</TableCell>
                       <TableCell align="right">{item.quantity}</TableCell>
-                      <TableCell align="right">${item.priceAtTime.toFixed(2)}</TableCell>
+                      <TableCell align="right">${parseFloat(item.priceAtTime.toString()).toFixed(2)}</TableCell>
                       <TableCell align="right">
-                        ${(item.quantity * item.priceAtTime).toFixed(2)}
+                        ${(item.quantity * parseFloat(item.priceAtTime.toString())).toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -282,7 +282,7 @@ const AdminDashboard = () => {
                       <TableCell>{product.sku}</TableCell>
                       <TableCell>{product.name}</TableCell>
                       <TableCell>{product.category}</TableCell>
-                      <TableCell>${product.price.toFixed(2)}</TableCell>
+                      <TableCell>${parseFloat(product.price.toString()).toFixed(2)}</TableCell>
                       <TableCell>{product.quantity}</TableCell>
                       <TableCell>
                         <IconButton
