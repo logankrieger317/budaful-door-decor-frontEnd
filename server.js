@@ -1,9 +1,9 @@
 import express from 'express';
+import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import adminRoutes from './src/routes/adminRoutes';
 
 dotenv.config();
 
@@ -16,11 +16,11 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Enable gzip compression
+app.use(compression());
+
 // Serve static files from the React app build directory
 app.use(express.static(join(__dirname, 'dist')));
-
-// Admin routes
-app.use('/api/admin', adminRoutes);
 
 // Handle React routing, return all requests to React app
 app.get('*', function(req, res) {
