@@ -45,7 +45,7 @@ interface Order {
   id: string;
   customerName: string;
   customerEmail: string;
-  totalAmount: number;
+  totalAmount: number | string;
   status: string;
   paymentStatus: string;
   createdAt: string;
@@ -89,7 +89,7 @@ function OrderRow({ order }: { order: Order }) {
         <TableCell>{order.id.slice(0, 8)}...</TableCell>
         <TableCell>{order.customerName}</TableCell>
         <TableCell>{order.customerEmail}</TableCell>
-        <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
+        <TableCell>${parseFloat(order.totalAmount.toString()).toFixed(2)}</TableCell>
         <TableCell>{order.status}</TableCell>
         <TableCell>{order.paymentStatus}</TableCell>
         <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
