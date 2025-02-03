@@ -15,12 +15,17 @@ import {
   Tab,
   Button,
   IconButton,
-  Alert,
   Collapse,
   Select,
   MenuItem,
   FormControl,
   Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -110,6 +115,7 @@ function OrderRow({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleStatusChange = async (
     field: "status" | "paymentStatus",
@@ -126,12 +132,12 @@ function OrderRow({
   };
 
   const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this order? This action cannot be undone.")) {
-      try {
-        await onOrderDelete(order.id);
-      } catch (error) {
-        console.error("Error deleting order:", error);
-      }
+    try {
+      await onOrderDelete(order.id);
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -190,20 +196,43 @@ function OrderRow({
             </Select>
           </FormControl>
         </TableCell>
-        <TableCell>
-          {new Date(order.createdAt).toLocaleDateString()}
-        </TableCell>
+        <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
         <TableCell>
           <IconButton
             aria-label="delete order"
             size="small"
-            onClick={handleDelete}
+            onClick={() => setDeleteDialogOpen(true)}
             color="error"
           >
             <DeleteIcon />
           </IconButton>
         </TableCell>
       </TableRow>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="delete-dialog-title"
+      >
+        <DialogTitle id="delete-dialog-title">Confirm Delete Order</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete order #{order.id}? This action cannot be undone.
+          </Typography>
+          <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+            All order information including customer details and order items will be permanently deleted.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Delete Order
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Expanded Order Details */}
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
           <Collapse in={open} timeout="auto" unmountOnExit>
@@ -293,6 +322,15 @@ const AdminDashboard = () => {
   const [error, setError] = useState("");
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error";
+  }>({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const navigate = useNavigate();
 
   const handleSort = (field: SortField) => {
@@ -375,6 +413,18 @@ const AdminDashboard = () => {
     </TableCell>
   );
 
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const showSnackbar = (message: string, severity: "success" | "error") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
@@ -388,9 +438,6 @@ const AdminDashboard = () => {
           api.get<Order[]>("/api/admin/orders"),
           api.get<Product[]>("/api/admin/products"),
         ]);
-
-        console.log("Orders:", ordersRes.data);
-        console.log("Products:", productsRes.data);
 
         setOrders(ordersRes.data);
         setProducts(productsRes.data);
@@ -431,15 +478,18 @@ const AdminDashboard = () => {
   const handleOrderDelete = async (orderId: string) => {
     try {
       await api.delete(`/api/admin/orders/${orderId}`);
-      setOrders(orders.filter(order => order.id !== orderId));
-      setError("");
+      setOrders(orders.filter((order) => order.id !== orderId));
+      showSnackbar("Order deleted successfully", "success");
     } catch (error: any) {
       console.error("Error deleting order:", error);
       if (error?.response?.status === 401) {
         localStorage.removeItem("adminToken");
         navigate("/admin/login");
       } else {
-        setError(error?.response?.data?.message || "Error deleting order");
+        showSnackbar(
+          error?.response?.data?.message || "Error deleting order",
+          "error"
+        );
       }
     }
   };
@@ -470,7 +520,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth={false}>
       <Box sx={{ mt: 4, mb: 4 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
           <Typography variant="h4" component="h1">
@@ -594,6 +644,23 @@ const AdminDashboard = () => {
           </TabPanel>
         </Paper>
       </Box>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
