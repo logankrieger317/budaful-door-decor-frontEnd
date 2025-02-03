@@ -26,8 +26,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import api from "../config/api";
 
 interface TabPanelProps {
@@ -80,8 +80,15 @@ const ORDER_STATUSES = [
 ];
 const PAYMENT_STATUSES = ["pending", "completed", "failed", "refunded"];
 
-type SortField = 'customerName' | 'contact' | 'totalAmount' | 'status' | 'paymentStatus' | 'createdAt';
-type SortDirection = 'asc' | 'desc';
+type SortField =
+  | "id"
+  | "customerName"
+  | "contact"
+  | "totalAmount"
+  | "status"
+  | "paymentStatus"
+  | "createdAt";
+type SortDirection = "asc" | "desc";
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -237,7 +244,8 @@ function OrderRow({
                         ${parseFloat(item.priceAtTime.toString()).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
-                        ${(
+                        $
+                        {(
                           item.quantity *
                           parseFloat(item.priceAtTime.toString())
                         ).toFixed(2)}
@@ -259,16 +267,16 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState("");
-  const [sortField, setSortField] = useState<SortField>('createdAt');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortField, setSortField] = useState<SortField>("createdAt");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const navigate = useNavigate();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
@@ -278,27 +286,31 @@ const AdminDashboard = () => {
       let compareB: string | number;
 
       switch (sortField) {
-        case 'customerName':
+        case "id":
+          compareA = a.id;
+          compareB = b.id;
+          break;
+        case "customerName":
           compareA = a.customerName.toLowerCase();
           compareB = b.customerName.toLowerCase();
           break;
-        case 'contact':
-          compareA = (a.customerEmail + (a.phone || '')).toLowerCase();
-          compareB = (b.customerEmail + (b.phone || '')).toLowerCase();
+        case "contact":
+          compareA = (a.customerEmail + (a.phone || "")).toLowerCase();
+          compareB = (b.customerEmail + (b.phone || "")).toLowerCase();
           break;
-        case 'totalAmount':
+        case "totalAmount":
           compareA = a.totalAmount;
           compareB = b.totalAmount;
           break;
-        case 'status':
+        case "status":
           compareA = a.status.toLowerCase();
           compareB = b.status.toLowerCase();
           break;
-        case 'paymentStatus':
+        case "paymentStatus":
           compareA = a.paymentStatus.toLowerCase();
           compareB = b.paymentStatus.toLowerCase();
           break;
-        case 'createdAt':
+        case "createdAt":
           compareA = new Date(a.createdAt).getTime();
           compareB = new Date(b.createdAt).getTime();
           break;
@@ -306,26 +318,35 @@ const AdminDashboard = () => {
           return 0;
       }
 
-      if (compareA < compareB) return sortDirection === 'asc' ? -1 : 1;
-      if (compareA > compareB) return sortDirection === 'asc' ? 1 : -1;
+      if (compareA < compareB) return sortDirection === "asc" ? -1 : 1;
+      if (compareA > compareB) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
   };
 
-  const SortableTableCell = ({ field, label }: { field: SortField; label: string }) => (
+  const SortableTableCell = ({
+    field,
+    label,
+  }: {
+    field: SortField;
+    label: string;
+  }) => (
     <TableCell
       onClick={() => handleSort(field)}
-      sx={{ 
-        cursor: 'pointer',
-        userSelect: 'none',
-        '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' }
+      sx={{
+        cursor: "pointer",
+        userSelect: "none",
+        "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ display: "flex", alignItems: "center" }}>
         {label}
-        {sortField === field && (
-          sortDirection === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />
-        )}
+        {sortField === field &&
+          (sortDirection === "asc" ? (
+            <ArrowUpwardIcon fontSize="small" />
+          ) : (
+            <ArrowDownwardIcon fontSize="small" />
+          ))}
       </Box>
     </TableCell>
   );
@@ -447,7 +468,8 @@ const AdminDashboard = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell style={{ width: '50px' }} />
+                    <TableCell style={{ width: "50px" }} />
+                    <SortableTableCell field="id" label="Order Number" />
                     <SortableTableCell field="customerName" label="Customer" />
                     <SortableTableCell field="contact" label="Contact" />
                     <SortableTableCell field="totalAmount" label="Total" />
@@ -458,7 +480,11 @@ const AdminDashboard = () => {
                 </TableHead>
                 <TableBody>
                   {sortOrders(orders).map((order) => (
-                    <OrderRow key={order.id} order={order} onOrderUpdate={handleOrderUpdate} />
+                    <OrderRow
+                      key={order.id}
+                      order={order}
+                      onOrderUpdate={handleOrderUpdate}
+                    />
                   ))}
                   {orders.length === 0 && (
                     <TableRow>
