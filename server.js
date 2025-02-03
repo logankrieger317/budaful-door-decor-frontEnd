@@ -22,7 +22,7 @@ app.use(compression());
 
 // Proxy /api requests to the backend
 app.use('/api', createProxyMiddleware({
-  target: process.env.BACKEND_URL || 'http://localhost:3001',
+  target: process.env.BACKEND_URL || 'https://budafuldoordecorbackend-production.up.railway.app',
   changeOrigin: true,
   pathRewrite: {
     '^/api': '/api', // no rewrite needed, keeping the /api prefix
@@ -31,6 +31,7 @@ app.use('/api', createProxyMiddleware({
     console.error('Proxy Error:', err);
     res.status(500).json({ message: 'Error connecting to backend service' });
   },
+  logLevel: 'debug', // Add debug logging
 }));
 
 // Serve static files from the React app build directory
