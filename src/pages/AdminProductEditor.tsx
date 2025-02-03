@@ -20,7 +20,7 @@ interface ProductForm {
   price: number;
   category: string;
   imageUrl: string;
-  stock: number;
+  quantity: number;
   width: number;
   length: number;
   color: string;
@@ -35,7 +35,7 @@ const initialForm: ProductForm = {
   price: 0,
   category: '',
   imageUrl: '',
-  stock: 0,
+  quantity: 0,
   width: 0,
   length: 0,
   color: '',
@@ -173,10 +173,10 @@ const AdminProductEditor = () => {
             />
             <TextField
               fullWidth
-              label="Stock"
-              name="stock"
+              label="Quantity"
+              name="quantity"
               type="number"
-              value={form.stock}
+              value={form.quantity}
               onChange={handleChange}
               margin="normal"
               required

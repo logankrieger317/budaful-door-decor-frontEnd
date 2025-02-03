@@ -15,6 +15,7 @@ import {
   Tab,
   Button,
   IconButton,
+  Alert,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -24,6 +25,34 @@ interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
+}
+
+interface Order {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  OrderItems: Array<{
+    id: string;
+    quantity: number;
+    Product: {
+      name: string;
+      sku: string;
+      price: number;
+    };
+  }>;
+}
+
+interface Product {
+  sku: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  quantity: number;
+  imageUrl?: string;
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -37,8 +66,9 @@ function TabPanel(props: TabPanelProps) {
 
 const AdminDashboard = () => {
   const [tab, setTab] = useState(0);
-  const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,17 +85,20 @@ const AdminDashboard = () => {
         };
 
         const [ordersRes, productsRes] = await Promise.all([
-          axios.get('/api/admin/orders', config),
-          axios.get('/api/admin/products', config)
+          axios.get<Order[]>('/api/admin/orders', config),
+          axios.get<Product[]>('/api/admin/products', config)
         ]);
 
         setOrders(ordersRes.data);
         setProducts(productsRes.data);
+        setError('');
       } catch (error) {
         console.error('Error fetching data:', error);
         if (axios.isAxiosError(error) && error.response?.status === 401) {
           localStorage.removeItem('adminToken');
           navigate('/admin/login');
+        } else {
+          setError('Error loading dashboard data');
         }
       }
     };
@@ -73,17 +106,24 @@ const AdminDashboard = () => {
     fetchData();
   }, [navigate]);
 
-  const handleDeleteProduct = async (productId: string) => {
+  const handleDeleteProduct = async (sku: string) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
 
     try {
       const token = localStorage.getItem('adminToken');
-      await axios.delete(`/api/admin/products/${productId}`, {
+      await axios.delete(`/api/admin/products/${sku}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setProducts(products.filter((p: any) => p.id !== productId));
+      setProducts(products.filter(p => p.sku !== sku));
+      setError('');
     } catch (error) {
       console.error('Error deleting product:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        localStorage.removeItem('adminToken');
+        navigate('/admin/login');
+      } else {
+        setError('Error deleting product');
+      }
     }
   };
 
@@ -99,10 +139,26 @@ const AdminDashboard = () => {
           <Typography variant="h4" component="h1">
             Admin Dashboard
           </Typography>
-          <Button variant="outlined" onClick={handleLogout}>
-            Logout
-          </Button>
+          <Box>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate('/admin/products/new')}
+              sx={{ mr: 2 }}
+            >
+              Add Product
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </Box>
         </Box>
+
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
         <Paper sx={{ width: '100%', mb: 2 }}>
           <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
@@ -117,17 +173,19 @@ const AdminDashboard = () => {
                   <TableRow>
                     <TableCell>Order ID</TableCell>
                     <TableCell>Customer</TableCell>
+                    <TableCell>Email</TableCell>
                     <TableCell>Total</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Date</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {orders.map((order: any) => (
+                  {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell>{order.id}</TableCell>
-                      <TableCell>{order.customer?.name || 'N/A'}</TableCell>
-                      <TableCell>${order.total}</TableCell>
+                      <TableCell>{order.customerName}</TableCell>
+                      <TableCell>{order.customerEmail}</TableCell>
+                      <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
                       <TableCell>{order.status}</TableCell>
                       <TableCell>
                         {new Date(order.createdAt).toLocaleDateString()}
@@ -140,40 +198,36 @@ const AdminDashboard = () => {
           </TabPanel>
 
           <TabPanel value={tab} index={1}>
-            <Box sx={{ mb: 2 }}>
-              <Button
-                variant="contained"
-                onClick={() => navigate('/admin/products/new')}
-              >
-                Add New Product
-              </Button>
-            </Box>
             <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow>
+                    <TableCell>SKU</TableCell>
                     <TableCell>Name</TableCell>
-                    <TableCell>Price</TableCell>
-                    <TableCell>Stock</TableCell>
                     <TableCell>Category</TableCell>
+                    <TableCell>Price</TableCell>
+                    <TableCell>Quantity</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {products.map((product: any) => (
-                    <TableRow key={product.id}>
+                  {products.map((product) => (
+                    <TableRow key={product.sku}>
+                      <TableCell>{product.sku}</TableCell>
                       <TableCell>{product.name}</TableCell>
-                      <TableCell>${product.price}</TableCell>
-                      <TableCell>{product.stock}</TableCell>
                       <TableCell>{product.category}</TableCell>
+                      <TableCell>${product.price.toFixed(2)}</TableCell>
+                      <TableCell>{product.quantity}</TableCell>
                       <TableCell>
                         <IconButton
-                          onClick={() => navigate(`/admin/products/${product.id}`)}
+                          onClick={() => navigate(`/admin/products/${product.sku}`)}
+                          color="primary"
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
-                          onClick={() => handleDeleteProduct(product.id)}
+                          onClick={() => handleDeleteProduct(product.sku)}
+                          color="error"
                         >
                           <DeleteIcon />
                         </IconButton>
