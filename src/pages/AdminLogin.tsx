@@ -25,6 +25,8 @@ const AdminLogin = () => {
     setLoading(true);
     
     try {
+      console.log('Attempting login with:', { email });
+
       const response = await api.post('/api/admin/login', {
         email,
         password,
@@ -34,13 +36,17 @@ const AdminLogin = () => {
 
       if (response.data?.token) {
         localStorage.setItem('adminToken', response.data.token);
+        if (response.data.admin) {
+          localStorage.setItem('adminUser', JSON.stringify(response.data.admin));
+        }
         navigate('/admin/dashboard');
       } else {
-        throw new Error('Invalid response from server');
+        throw new Error('Invalid response from server - no token received');
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Invalid credentials');
+      const errorMessage = err.response?.data?.message || err.message || 'Invalid credentials';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -64,6 +70,7 @@ const AdminLogin = () => {
               required
               type="email"
               disabled={loading}
+              autoComplete="email"
             />
             <TextField
               fullWidth
@@ -74,6 +81,7 @@ const AdminLogin = () => {
               required
               type="password"
               disabled={loading}
+              autoComplete="current-password"
             />
             <Button
               type="submit"
