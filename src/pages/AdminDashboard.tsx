@@ -102,9 +102,11 @@ function TabPanel(props: TabPanelProps) {
 function OrderRow({
   order,
   onOrderUpdate,
+  onOrderDelete,
 }: {
   order: Order;
   onOrderUpdate: (orderId: string, updates: any) => Promise<void>;
+  onOrderDelete: (orderId: string) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -117,9 +119,19 @@ function OrderRow({
     try {
       await onOrderUpdate(order.id, { [field]: value });
     } catch (error) {
-      console.error(`Error updating ${field}:`, error);
+      console.error("Error updating order:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this order? This action cannot be undone.")) {
+      try {
+        await onOrderDelete(order.id);
+      } catch (error) {
+        console.error("Error deleting order:", error);
+      }
     }
   };
 
@@ -135,7 +147,7 @@ function OrderRow({
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell>{order.id.slice(0, 8)}...</TableCell>
+        <TableCell>{order.id}</TableCell>
         <TableCell>{order.customerName}</TableCell>
         <TableCell>
           <div>{order.customerEmail}</div>
@@ -178,7 +190,19 @@ function OrderRow({
             </Select>
           </FormControl>
         </TableCell>
-        <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+        <TableCell>
+          {new Date(order.createdAt).toLocaleDateString()}
+        </TableCell>
+        <TableCell>
+          <IconButton
+            aria-label="delete order"
+            size="small"
+            onClick={handleDelete}
+            color="error"
+          >
+            <DeleteIcon />
+          </IconButton>
+        </TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
@@ -404,6 +428,22 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleOrderDelete = async (orderId: string) => {
+    try {
+      await api.delete(`/api/admin/orders/${orderId}`);
+      setOrders(orders.filter(order => order.id !== orderId));
+      setError("");
+    } catch (error: any) {
+      console.error("Error deleting order:", error);
+      if (error?.response?.status === 401) {
+        localStorage.removeItem("adminToken");
+        navigate("/admin/login");
+      } else {
+        setError(error?.response?.data?.message || "Error deleting order");
+      }
+    }
+  };
+
   const handleDeleteProduct = async (sku: string) => {
     if (!window.confirm("Are you sure you want to delete this product?"))
       return;
@@ -476,6 +516,7 @@ const AdminDashboard = () => {
                     <SortableTableCell field="status" label="Status" />
                     <SortableTableCell field="paymentStatus" label="Payment" />
                     <SortableTableCell field="createdAt" label="Date" />
+                    <TableCell style={{ width: "50px" }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -484,6 +525,7 @@ const AdminDashboard = () => {
                       key={order.id}
                       order={order}
                       onOrderUpdate={handleOrderUpdate}
+                      onOrderDelete={handleOrderDelete}
                     />
                   ))}
                   {orders.length === 0 && (
