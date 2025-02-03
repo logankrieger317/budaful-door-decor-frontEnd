@@ -17,6 +17,11 @@ import {
   IconButton,
   Alert,
   Collapse,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Grid,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -45,22 +50,29 @@ interface Order {
   id: string;
   customerName: string;
   customerEmail: string;
+  phone?: string;
   totalAmount: number | string;
   status: string;
   paymentStatus: string;
   createdAt: string;
   items: OrderItem[];
+  shippingAddress: string;
+  billingAddress: string;
+  notes?: string;
 }
 
 interface Product {
   sku: string;
   name: string;
   description: string;
-  price: number;
+  price: number | string;
   category: string;
   quantity: number;
   imageUrl?: string;
 }
+
+const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+const PAYMENT_STATUSES = ['pending', 'completed', 'failed', 'refunded'];
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -71,8 +83,20 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-function OrderRow({ order }: { order: Order }) {
+function OrderRow({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (orderId: string, updates: any) => Promise<void> }) {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleStatusChange = async (field: 'status' | 'paymentStatus', value: string) => {
+    setLoading(true);
+    try {
+      await onOrderUpdate(order.id, { [field]: value });
+    } catch (error) {
+      console.error(`Error updating ${field}:`, error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -88,16 +112,73 @@ function OrderRow({ order }: { order: Order }) {
         </TableCell>
         <TableCell>{order.id.slice(0, 8)}...</TableCell>
         <TableCell>{order.customerName}</TableCell>
-        <TableCell>{order.customerEmail}</TableCell>
+        <TableCell>
+          <div>{order.customerEmail}</div>
+          {order.phone && <div style={{ color: 'gray', fontSize: '0.9em' }}>{order.phone}</div>}
+        </TableCell>
         <TableCell>${parseFloat(order.totalAmount.toString()).toFixed(2)}</TableCell>
-        <TableCell>{order.status}</TableCell>
-        <TableCell>{order.paymentStatus}</TableCell>
+        <TableCell>
+          <FormControl size="small" fullWidth disabled={loading}>
+            <Select
+              value={order.status}
+              onChange={(e) => handleStatusChange('status', e.target.value)}
+            >
+              {ORDER_STATUSES.map(status => (
+                <MenuItem key={status} value={status}>
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </TableCell>
+        <TableCell>
+          <FormControl size="small" fullWidth disabled={loading}>
+            <Select
+              value={order.paymentStatus}
+              onChange={(e) => handleStatusChange('paymentStatus', e.target.value)}
+            >
+              {PAYMENT_STATUSES.map(status => (
+                <MenuItem key={status} value={status}>
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </TableCell>
         <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Shipping Address
+                  </Typography>
+                  <Typography variant="body2" style={{ whiteSpace: 'pre-line' }}>
+                    {order.shippingAddress}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Billing Address
+                  </Typography>
+                  <Typography variant="body2" style={{ whiteSpace: 'pre-line' }}>
+                    {order.billingAddress}
+                  </Typography>
+                </Grid>
+                {order.notes && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Notes
+                    </Typography>
+                    <Typography variant="body2" style={{ whiteSpace: 'pre-line' }}>
+                      {order.notes}
+                    </Typography>
+                  </Grid>
+                )}
+              </Grid>
               <Typography variant="h6" gutterBottom component="div">
                 Order Items
               </Typography>
@@ -174,6 +255,23 @@ const AdminDashboard = () => {
     fetchData();
   }, [navigate]);
 
+  const handleOrderUpdate = async (orderId: string, updates: any) => {
+    try {
+      const response = await api.put(`/api/admin/orders/${orderId}`, updates);
+      setOrders(orders.map(order => 
+        order.id === orderId ? response.data : order
+      ));
+      setError('');
+    } catch (error: any) {
+      console.error('Error updating order:', error);
+      if (error?.response?.status === 401) {
+        localStorage.removeItem('adminToken');
+        navigate('/admin/login');
+      }
+      throw error;
+    }
+  };
+
   const handleDeleteProduct = async (sku: string) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
 
@@ -240,7 +338,7 @@ const AdminDashboard = () => {
                     <TableCell />
                     <TableCell>Order ID</TableCell>
                     <TableCell>Customer</TableCell>
-                    <TableCell>Email</TableCell>
+                    <TableCell>Contact</TableCell>
                     <TableCell>Total</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Payment</TableCell>
@@ -249,7 +347,7 @@ const AdminDashboard = () => {
                 </TableHead>
                 <TableBody>
                   {orders.map((order) => (
-                    <OrderRow key={order.id} order={order} />
+                    <OrderRow key={order.id} order={order} onOrderUpdate={handleOrderUpdate} />
                   ))}
                   {orders.length === 0 && (
                     <TableRow>
