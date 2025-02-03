@@ -26,6 +26,12 @@ import {
   DialogActions,
   Snackbar,
   Alert,
+  Card,
+  CardContent,
+  CardActions,
+  useTheme,
+  useMediaQuery,
+  Chip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -108,10 +114,12 @@ function OrderRow({
   order,
   onOrderUpdate,
   onOrderDelete,
+  isMobile,
 }: {
   order: Order;
   onOrderUpdate: (orderId: string, updates: any) => Promise<void>;
   onOrderDelete: (orderId: string) => Promise<void>;
+  isMobile: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -140,6 +148,163 @@ function OrderRow({
       setDeleteDialogOpen(false);
     }
   };
+
+  if (isMobile) {
+    return (
+      <>
+        <Card sx={{ mb: 2 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Order #{order.id}
+              </Typography>
+              <Typography variant="subtitle2">
+                {new Date(order.createdAt).toLocaleDateString()}
+              </Typography>
+            </Box>
+            
+            <Typography variant="h6" gutterBottom>
+              {order.customerName}
+            </Typography>
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                {order.customerEmail}
+              </Typography>
+              {order.phone && (
+                <Typography variant="body2" color="text.secondary">
+                  {order.phone}
+                </Typography>
+              )}
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+              <Chip
+                label={`$${parseFloat(order.totalAmount.toString()).toFixed(2)}`}
+                color="primary"
+                variant="outlined"
+              />
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <Select
+                  value={order.status}
+                  onChange={(e) => handleStatusChange("status", e.target.value)}
+                  disabled={loading}
+                >
+                  {ORDER_STATUSES.map((status) => (
+                    <MenuItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <Select
+                  value={order.paymentStatus}
+                  onChange={(e) =>
+                    handleStatusChange("paymentStatus", e.target.value)
+                  }
+                  disabled={loading}
+                >
+                  {PAYMENT_STATUSES.map((status) => (
+                    <MenuItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <Button
+                size="small"
+                onClick={() => setOpen(!open)}
+                startIcon={open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+              >
+                {open ? "Hide" : "Show"} Order Details
+              </Button>
+            </Box>
+
+            <Collapse in={open} timeout="auto" unmountOnExit>
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Order Items:
+                </Typography>
+                {order.items?.map((item) => (
+                  <Box key={item.id} sx={{ mb: 1 }}>
+                    <Typography variant="body2">
+                      {item.Product.name} (SKU: {item.Product.sku})
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {item.quantity} x ${parseFloat(item.priceAtTime.toString()).toFixed(2)} = 
+                      ${(item.quantity * parseFloat(item.priceAtTime.toString())).toFixed(2)}
+                    </Typography>
+                  </Box>
+                ))}
+
+                <Typography variant="subtitle2" sx={{ mt: 2 }} gutterBottom>
+                  Shipping Address:
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                  {order.shippingAddress}
+                </Typography>
+
+                <Typography variant="subtitle2" sx={{ mt: 2 }} gutterBottom>
+                  Billing Address:
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                  {order.billingAddress}
+                </Typography>
+
+                {order.notes && (
+                  <>
+                    <Typography variant="subtitle2" sx={{ mt: 2 }} gutterBottom>
+                      Notes:
+                    </Typography>
+                    <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                      {order.notes}
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            </Collapse>
+          </CardContent>
+          <CardActions>
+            <Button
+              size="small"
+              color="error"
+              onClick={() => setDeleteDialogOpen(true)}
+              startIcon={<DeleteIcon />}
+            >
+              Delete Order
+            </Button>
+          </CardActions>
+        </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          aria-labelledby="delete-dialog-title"
+        >
+          <DialogTitle id="delete-dialog-title">Confirm Delete Order</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete order #{order.id}? This action cannot be undone.
+            </Typography>
+            <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+              All order information including customer details and order items will be permanently deleted.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleDelete} color="error" variant="contained">
+              Delete Order
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </>
+    );
+  }
 
   return (
     <>
@@ -316,6 +481,8 @@ function OrderRow({
 }
 
 const AdminDashboard = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [tab, setTab] = useState(0);
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -554,40 +721,60 @@ const AdminDashboard = () => {
           </Tabs>
 
           <TabPanel value={tab} index={0}>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell style={{ width: "50px" }} />
-                    <SortableTableCell field="id" label="Order Number" />
-                    <SortableTableCell field="customerName" label="Customer" />
-                    <SortableTableCell field="contact" label="Contact" />
-                    <SortableTableCell field="totalAmount" label="Total" />
-                    <SortableTableCell field="status" label="Status" />
-                    <SortableTableCell field="paymentStatus" label="Payment" />
-                    <SortableTableCell field="createdAt" label="Date" />
-                    <TableCell style={{ width: "50px" }}>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sortOrders(orders).map((order) => (
-                    <OrderRow
-                      key={order.id}
-                      order={order}
-                      onOrderUpdate={handleOrderUpdate}
-                      onOrderDelete={handleOrderDelete}
-                    />
-                  ))}
-                  {orders.length === 0 && (
+            {isMobile ? (
+              <Box sx={{ mt: 2 }}>
+                {sortOrders(orders).map((order) => (
+                  <OrderRow
+                    key={order.id}
+                    order={order}
+                    onOrderUpdate={handleOrderUpdate}
+                    onOrderDelete={handleOrderDelete}
+                    isMobile={isMobile}
+                  />
+                ))}
+                {orders.length === 0 && (
+                  <Typography align="center" color="text.secondary">
+                    No orders found
+                  </Typography>
+                )}
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={8} align="center">
-                        No orders found
-                      </TableCell>
+                      <TableCell style={{ width: "50px" }} />
+                      <SortableTableCell field="id" label="Order Number" />
+                      <SortableTableCell field="customerName" label="Customer" />
+                      <SortableTableCell field="contact" label="Contact" />
+                      <SortableTableCell field="totalAmount" label="Total" />
+                      <SortableTableCell field="status" label="Status" />
+                      <SortableTableCell field="paymentStatus" label="Payment" />
+                      <SortableTableCell field="createdAt" label="Date" />
+                      <TableCell style={{ width: "50px" }}>Actions</TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {sortOrders(orders).map((order) => (
+                      <OrderRow
+                        key={order.id}
+                        order={order}
+                        onOrderUpdate={handleOrderUpdate}
+                        onOrderDelete={handleOrderDelete}
+                        isMobile={isMobile}
+                      />
+                    ))}
+                    {orders.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={8} align="center">
+                          No orders found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
           </TabPanel>
 
           <TabPanel value={tab} index={1}>
