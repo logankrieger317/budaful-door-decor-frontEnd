@@ -1,5 +1,10 @@
 import axios, { AxiosError } from 'axios';
 
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+}
+
 // Using relative URLs since we're proxying through the frontend server
 const api = axios.create({
   headers: {
@@ -20,7 +25,7 @@ api.interceptors.request.use((config) => {
 // Add response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  (error: AxiosError<ApiErrorResponse>) => {
     console.error('API Error:', {
       status: error.response?.status,
       message: error.message,
@@ -41,7 +46,11 @@ api.interceptors.response.use(
       return Promise.reject(new Error(error.response.data.message));
     }
 
-    return Promise.reject(error);
+    if (error.response?.data?.error) {
+      return Promise.reject(new Error(error.response.data.error));
+    }
+
+    return Promise.reject(new Error('An unexpected error occurred. Please try again.'));
   }
 );
 
