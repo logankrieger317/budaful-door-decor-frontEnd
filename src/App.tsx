@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProductEditor from "./pages/AdminProductEditor";
+import EditProduct from "./pages/EditProduct";
 import { HelmetProvider } from 'react-helmet-async';
 
 const theme = createTheme({
@@ -102,6 +103,7 @@ function AppContent(): JSX.Element {
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/products/:sku/edit" element={<EditProduct />} />
           <Route path="/admin/products/:productId" element={<AdminProductEditor />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
