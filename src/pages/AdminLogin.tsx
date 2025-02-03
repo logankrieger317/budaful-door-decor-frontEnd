@@ -25,8 +25,7 @@ const AdminLogin = () => {
     setLoading(true);
     
     try {
-      // Remove /api prefix since we're using direct backend URL
-      const response = await api.post('/admin/login', {
+      const response = await api.post('/api/admin/login', {
         email,
         password,
       });
