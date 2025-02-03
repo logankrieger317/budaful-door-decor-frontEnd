@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
+import api from '../config/api';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -80,13 +80,9 @@ const AdminDashboard = () => {
 
     const fetchData = async () => {
       try {
-        const config = {
-          headers: { Authorization: `Bearer ${token}` }
-        };
-
         const [ordersRes, productsRes] = await Promise.all([
-          axios.get<Order[]>('/api/admin/orders', config),
-          axios.get<Product[]>('/api/admin/products', config)
+          api.get<Order[]>('/api/admin/orders'),
+          api.get<Product[]>('/api/admin/products')
         ]);
 
         setOrders(ordersRes.data);
@@ -94,7 +90,7 @@ const AdminDashboard = () => {
         setError('');
       } catch (error) {
         console.error('Error fetching data:', error);
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
+        if (error.response?.status === 401) {
           localStorage.removeItem('adminToken');
           navigate('/admin/login');
         } else {
@@ -110,15 +106,12 @@ const AdminDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const token = localStorage.getItem('adminToken');
-      await axios.delete(`/api/admin/products/${sku}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/admin/products/${sku}`);
       setProducts(products.filter(p => p.sku !== sku));
       setError('');
     } catch (error) {
       console.error('Error deleting product:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
+      if (error.response?.status === 401) {
         localStorage.removeItem('adminToken');
         navigate('/admin/login');
       } else {

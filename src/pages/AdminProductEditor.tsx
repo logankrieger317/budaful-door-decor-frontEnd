@@ -11,7 +11,7 @@ import {
   FormControlLabel,
   Switch,
 } from '@mui/material';
-import axios from 'axios';
+import api from '../config/api';
 
 interface ProductForm {
   name: string;
@@ -52,22 +52,19 @@ const AdminProductEditor = () => {
   const isEditing = productId !== 'new';
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login');
-      return;
-    }
-
     if (isEditing) {
       const fetchProduct = async () => {
         try {
-          const response = await axios.get(`/api/admin/products/${productId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const response = await api.get(`/api/admin/products/${productId}`);
           setForm(response.data);
         } catch (error) {
           console.error('Error fetching product:', error);
-          setError('Error loading product');
+          if (error.response?.status === 401) {
+            localStorage.removeItem('adminToken');
+            navigate('/admin/login');
+          } else {
+            setError('Error loading product');
+          }
         }
       };
       fetchProduct();
@@ -76,22 +73,22 @@ const AdminProductEditor = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem('adminToken');
-    
     try {
       if (isEditing) {
-        await axios.put(`/api/admin/products/${productId}`, form, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.put(`/api/admin/products/${productId}`, form);
       } else {
-        await axios.post('/api/admin/products', form, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.post('/api/admin/products', form);
       }
       setSuccess('Product saved successfully');
       setTimeout(() => navigate('/admin/dashboard'), 1500);
-    } catch (err) {
-      setError('Error saving product');
+    } catch (error) {
+      console.error('Error saving product:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('adminToken');
+        navigate('/admin/login');
+      } else {
+        setError('Error saving product');
+      }
     }
   };
 

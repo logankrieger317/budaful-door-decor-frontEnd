@@ -9,7 +9,7 @@ import {
   Paper,
   Alert,
 } from '@mui/material';
-import axios from 'axios';
+import api from '../config/api';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -19,16 +19,19 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    
     try {
-      const response = await axios.post('/api/admin/login', {
+      const response = await api.post('/api/admin/login', {
         email,
         password,
       });
 
       localStorage.setItem('adminToken', response.data.token);
       navigate('/admin/dashboard');
-    } catch (err) {
-      setError('Invalid credentials');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Invalid credentials');
     }
   };
 
