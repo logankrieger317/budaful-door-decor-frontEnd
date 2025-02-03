@@ -4,7 +4,6 @@ import { AppBar, Toolbar, Button, Container, useTheme, useMediaQuery, Menu, Menu
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 export const categories = [
-  { id: 'all', name: 'All Products' },
   { id: 'seasonal', name: 'Seasonal' },
   { id: 'florals', name: 'Florals' },
   { id: 'greenery', name: 'Greenery' },
@@ -74,6 +73,13 @@ export default function CategoryNav(): JSX.Element {
                 horizontal: 'center',
               }}
             >
+              <MenuItem
+                key="all"
+                onClick={() => handleCategoryClick('all')}
+                selected={currentCategory === 'all'}
+              >
+                All Products
+              </MenuItem>
               {categories.map((category) => (
                 <MenuItem
                   key={category.id}

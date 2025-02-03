@@ -5,8 +5,6 @@ import {
   Grid,
   Box,
   CircularProgress,
-  Breadcrumbs,
-  Link,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
@@ -99,13 +97,6 @@ export default function Products(): JSX.Element {
       />
 
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 4 }}>
-          <Link color="inherit" href="/">
-            Home
-          </Link>
-          <Typography color="text.primary">{categoryName}</Typography>
-        </Breadcrumbs>
-
         <Typography
           variant="h4"
           component="h1"
