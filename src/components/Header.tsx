@@ -114,7 +114,7 @@ export default function Header(): JSX.Element {
                 <>
                   {user.isAdmin && (
                     <Button
-                      onClick={() => navigate('/admin')}
+                      onClick={() => navigate('/admin/dashboard')}
                       sx={{
                         mx: 1,
                         color: 'primary.main',
