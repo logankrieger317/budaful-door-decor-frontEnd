@@ -7,12 +7,15 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin = false }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requireAdmin = false 
+}) => {
   const user = useSelector((state: RootState) => state.user.currentUser);
   const location = useLocation();
 
   if (!user) {
-    // Redirect to login but save the attempted location
+    // Redirect them to the home page, but save the attempted location
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 

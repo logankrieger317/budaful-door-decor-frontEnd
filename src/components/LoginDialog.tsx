@@ -1,49 +1,53 @@
-import { useState } from "react";
+import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../store/userSlice';
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
-  Typography,
+  Button,
   Box,
   IconButton,
+  Typography,
   Alert,
-} from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
-import { useDispatch } from "react-redux";
-import { setUser } from "../store/userSlice";
-import { useNavigate } from "react-router-dom";
+  CircularProgress
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 
 interface LoginDialogProps {
   open: boolean;
   onClose: () => void;
 }
 
-export default function LoginDialog({
-  open,
-  onClose,
-}: LoginDialogProps): JSX.Element {
+interface LocationState {
+  from?: {
+    pathname: string;
+  };
+}
+
+export default function LoginDialog({ open, onClose }: LoginDialogProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     });
-    setError(null);
   };
 
   const handleLogin = async (event: React.FormEvent) => {
@@ -57,7 +61,10 @@ export default function LoginDialog({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: formData.email, password: formData.password }),
+        body: JSON.stringify({ 
+          email: formData.email, 
+          password: formData.password 
+        }),
       });
 
       const data = await response.json();
@@ -73,9 +80,9 @@ export default function LoginDialog({
       onClose();
 
       // Get the redirect location from state, or default to profile/admin dashboard
-      const location = (window.location.state as any)?.from;
-      if (location) {
-        navigate(location.pathname);
+      const state = location.state as LocationState;
+      if (state?.from) {
+        navigate(state.from.pathname);
       } else {
         // Redirect based on user role
         if (data.data.user.isAdmin) {
@@ -102,12 +109,7 @@ export default function LoginDialog({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          email: formData.email, 
-          password: formData.password, 
-          firstName: formData.firstName, 
-          lastName: formData.lastName 
-        }),
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
@@ -123,16 +125,11 @@ export default function LoginDialog({
       onClose();
 
       // Get the redirect location from state, or default to profile/admin dashboard
-      const location = (window.location.state as any)?.from;
-      if (location) {
-        navigate(location.pathname);
+      const state = location.state as LocationState;
+      if (state?.from) {
+        navigate(state.from.pathname);
       } else {
-        // Redirect based on user role
-        if (data.data.user.isAdmin) {
-          navigate('/admin/dashboard');
-        } else {
-          navigate('/profile');
-        }
+        navigate('/profile'); // New users are never admin
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -142,10 +139,12 @@ export default function LoginDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          {isLogin ? "Login" : "Create Account"}
+          <Typography variant="h6">
+            {isLogin ? 'Login' : 'Register'}
+          </Typography>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
@@ -158,71 +157,67 @@ export default function LoginDialog({
               {error}
             </Alert>
           )}
-          <TextField
-            autoFocus
-            margin="dense"
-            name="email"
-            label="Email Address"
-            type="email"
-            fullWidth
-            required
-            value={formData.email}
-            onChange={handleInputChange}
-          />
           {!isLogin && (
             <>
               <TextField
                 margin="dense"
-                name="firstName"
                 label="First Name"
-                fullWidth
-                required
+                name="firstName"
                 value={formData.firstName}
                 onChange={handleInputChange}
+                fullWidth
+                required
               />
               <TextField
                 margin="dense"
-                name="lastName"
                 label="Last Name"
-                fullWidth
-                required
+                name="lastName"
                 value={formData.lastName}
                 onChange={handleInputChange}
+                fullWidth
+                required
               />
             </>
           )}
           <TextField
             margin="dense"
-            name="password"
-            label="Password"
-            type="password"
+            label="Email"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
             fullWidth
             required
+          />
+          <TextField
+            margin="dense"
+            label="Password"
+            type="password"
+            name="password"
             value={formData.password}
             onChange={handleInputChange}
+            fullWidth
+            required
           />
-          <Box mt={2}>
-            <Typography variant="body2" color="textSecondary">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
-              <Button
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setError(null);
-                }}
-                color="primary"
-                sx={{ ml: 1 }}
-              >
-                {isLogin ? "Sign Up" : "Login"}
-              </Button>
-            </Typography>
-          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} color="primary">
-            Cancel
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setIsLogin(!isLogin)}
+            color="primary"
+          >
+            {isLogin ? 'Need to register?' : 'Already have an account?'}
           </Button>
-          <Button type="submit" color="primary" variant="contained">
-            {isLogin ? "Login" : "Create Account"}
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              isLogin ? 'Login' : 'Register'
+            )}
           </Button>
         </DialogActions>
       </form>
