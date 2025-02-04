@@ -112,18 +112,50 @@ export default function Header(): JSX.Element {
             <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
               {user ? (
                 <>
+                  {user.isAdmin && (
+                    <Button
+                      onClick={() => navigate('/admin')}
+                      sx={{
+                        mx: 1,
+                        color: 'primary.main',
+                        borderColor: 'primary.main',
+                        '&:hover': {
+                          backgroundColor: 'primary.main',
+                          color: 'white',
+                        },
+                        variant: 'outlined'
+                      }}
+                    >
+                      Admin Dashboard
+                    </Button>
+                  )}
                   <Button
-                    color="inherit"
-                    component={Link}
-                    to={user.isAdmin ? "/admin/dashboard" : "/profile"}
-                    sx={{ ml: 2 }}
+                    onClick={() => navigate('/profile')}
+                    sx={{
+                      mx: 1,
+                      color: 'primary.main',
+                      borderColor: 'primary.main',
+                      '&:hover': {
+                        backgroundColor: 'primary.main',
+                        color: 'white',
+                      },
+                      variant: 'outlined'
+                    }}
                   >
-                    {user.isAdmin ? "Admin Dashboard" : "Profile"}
+                    Profile
                   </Button>
                   <Button
-                    color="inherit"
                     onClick={handleLogout}
-                    sx={{ ml: 2 }}
+                    sx={{
+                      mx: 1,
+                      color: 'error.main',
+                      borderColor: 'error.main',
+                      '&:hover': {
+                        backgroundColor: 'error.main',
+                        color: 'white',
+                      },
+                      variant: 'outlined'
+                    }}
                   >
                     Logout
                   </Button>
@@ -132,12 +164,15 @@ export default function Header(): JSX.Element {
                 <Button
                   startIcon={<PersonIcon />}
                   onClick={() => setLoginDialogOpen(true)}
-                  sx={{ 
-                    mr: 2,
-                    color: 'text.primary',
+                  sx={{
+                    mx: 1,
+                    color: 'primary.main',
+                    borderColor: 'primary.main',
                     '&:hover': {
-                      color: 'primary.main',
-                    }
+                      backgroundColor: 'primary.main',
+                      color: 'white',
+                    },
+                    variant: 'outlined'
                   }}
                 >
                   Login
