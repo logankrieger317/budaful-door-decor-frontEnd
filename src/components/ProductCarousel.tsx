@@ -126,7 +126,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
     dots: true,
     infinite: true,
     speed: 500,
-    slidesToShow: isMobile ? 1 : isTablet ? 2 : 4,
+    slidesToShow: isMobile ? 1 : isTablet ? 2 : 3,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 5000,
@@ -136,13 +136,13 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
       {
         breakpoint: 1024,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: 2,
         },
       },
       {
         breakpoint: 768,
         settings: {
-          slidesToShow: 2,
+          slidesToShow: 1,
         },
       },
       {
@@ -168,7 +168,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
       <Box sx={{ mx: { md: 5 } }}>
         <Slider {...settings}>
           {products.map((product) => (
-            <Box key={product.sku} sx={{ px: 1 }}>
+            <Box key={product.sku} sx={{ px: 2 }}>
               <Card
                 sx={{
                   height: '100%',
@@ -208,19 +208,18 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
                     ${product.price.toFixed(2)}
                   </Typography>
                 </CardContent>
-                <CardActions sx={{ p: 2, pt: 0 }}>
+                <CardActions sx={{ p: 2, pt: 0, gap: 1, flexDirection: { xs: 'column', sm: 'row' }, minHeight: 80 }}>
                   <Button
                     variant="contained"
-                    fullWidth
                     onClick={() => handleBuyNow(product)}
-                    sx={{ mb: 1 }}
+                    sx={{ flex: 1, width: '100%' }}
                   >
                     Buy Now
                   </Button>
                   <Button
                     variant="outlined"
-                    fullWidth
                     onClick={() => handleAddToCart(product)}
+                    sx={{ flex: 1, width: '100%' }}
                   >
                     Add to Cart
                   </Button>
