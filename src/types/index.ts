@@ -3,8 +3,12 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  image?: string;
-  stock: number;
+  imageUrl?: string;
+  quantity: number;
+  category?: string;
+  width?: string;
+  length?: string;
+  isWired?: boolean;
   color?: string;
   brand?: string;
 }
@@ -15,12 +19,8 @@ export interface CustomOptions {
   isWired?: boolean;
 }
 
-export interface CartItem {
-  sku: string;
-  name: string;
-  price: number;
+export interface CartItem extends Product {
   quantity: number;
-  image?: string;
 }
 
 export interface CustomerInfo {
