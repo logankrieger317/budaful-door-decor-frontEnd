@@ -26,8 +26,16 @@ interface TabPanelProps {
 interface Order {
   id: string;
   status: string;
-  totalAmount: number;
+  totalAmount: number | string;
   createdAt: string;
+  items?: Array<{
+    id: string;
+    quantity: number;
+    Product: {
+      name: string;
+      price: number;
+    };
+  }>;
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -119,9 +127,9 @@ export default function Profile() {
         </Tabs>
 
         <TabPanel value={tabValue} index={0}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card>
+          <Grid container spacing={3} justifyContent="center">
+            <Grid item xs={12} md={8} lg={6}>
+              <Card sx={{ boxShadow: 3 }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     Account Information
@@ -181,6 +189,18 @@ export default function Profile() {
                         </Typography>
                       </Box>
                       <Divider sx={{ my: 2 }} />
+                      {order.items && order.items.length > 0 && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography color="text.secondary" gutterBottom>
+                            Items
+                          </Typography>
+                          {order.items.map((item) => (
+                            <Typography key={item.id}>
+                              {item.quantity}x {item.Product.name} - ${Number(item.Product.price).toFixed(2)}
+                            </Typography>
+                          ))}
+                        </Box>
+                      )}
                       <Box sx={{ mb: 2 }}>
                         <Typography color="text.secondary" gutterBottom>
                           Status
@@ -202,7 +222,7 @@ export default function Profile() {
                         <Typography color="text.secondary" gutterBottom>
                           Total Amount
                         </Typography>
-                        <Typography>${Number(order.totalAmount).toFixed(2)}</Typography>
+                        <Typography>${typeof order.totalAmount === 'string' ? order.totalAmount : Number(order.totalAmount).toFixed(2)}</Typography>
                       </Box>
                       <Button
                         variant="outlined"
