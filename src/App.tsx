@@ -26,12 +26,13 @@ import AdminProductEditor from "./pages/AdminProductEditor";
 import EditProduct from "./pages/EditProduct";
 import Profile from "./pages/Profile";
 import OrderDetails from "./pages/OrderDetails";
-import { HelmetProvider } from 'react-helmet-async';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { setUser } from './store/userSlice';
-import { ENDPOINTS } from './config/constants';
+import { HelmetProvider } from "react-helmet-async";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { setUser } from "./store/userSlice";
+// import { ENDPOINTS } from './config/constants';
+import api from "./utils/api";
 
 const theme = createTheme({
   palette: {
@@ -88,24 +89,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (token) {
         try {
-          const response = await fetch(ENDPOINTS.AUTH.PROFILE, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            dispatch(setUser(data.user));
-          } else {
-            localStorage.removeItem('token');
-          }
+          const response = await api.get("/auth/profile");
+          dispatch(setUser(response.data.data.user));
         } catch (error) {
-          console.error('Error checking auth status:', error);
-          localStorage.removeItem('token');
+          console.error("Error checking auth status:", error);
+          localStorage.removeItem("token");
         }
       }
     };
@@ -119,7 +110,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 // Main app layout with routes
 function AppRoutes() {
   const location = useLocation();
-  const showCategoryNav = location.pathname === "/" || location.pathname.startsWith("/products");
+  const showCategoryNav =
+    location.pathname === "/" || location.pathname.startsWith("/products");
 
   return (
     <Box
@@ -142,46 +134,46 @@ function AppRoutes() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
-          <Route 
-            path="/profile" 
+          <Route
+            path="/profile"
             element={
               <ProtectedRoute>
                 <Profile />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/order/:orderId" 
+          <Route
+            path="/order/:orderId"
             element={
               <ProtectedRoute>
                 <OrderDetails />
               </ProtectedRoute>
-            } 
+            }
           />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route 
-            path="/admin/dashboard" 
+          <Route
+            path="/admin/dashboard"
             element={
               <ProtectedRoute requireAdmin>
                 <AdminDashboard />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/products/:sku/edit" 
+          <Route
+            path="/admin/products/:sku/edit"
             element={
               <ProtectedRoute requireAdmin>
                 <EditProduct />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/products/:productId" 
+          <Route
+            path="/admin/products/:productId"
             element={
               <ProtectedRoute requireAdmin>
                 <AdminProductEditor />
               </ProtectedRoute>
-            } 
+            }
           />
           <Route path="*" element={<NotFound />} />
         </Routes>

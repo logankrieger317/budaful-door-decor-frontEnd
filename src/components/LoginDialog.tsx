@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/userSlice';
-import { ENDPOINTS } from '../config/constants';
+import api from '../utils/api';
 import {
   Dialog,
   DialogTitle,
@@ -57,25 +57,14 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(ENDPOINTS.AUTH.LOGIN, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email: formData.email, 
-          password: formData.password 
-        }),
+      const response = await api.post('/auth/login', {
+        email: formData.email,
+        password: formData.password
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      dispatch(setUser(data.data.user));
-      localStorage.setItem('token', data.token);
+      const { token, data } = response.data;
+      dispatch(setUser(data.user));
+      localStorage.setItem('token', token);
       
       // Close the dialog
       onClose();
@@ -86,14 +75,14 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps) {
         navigate(state.from.pathname);
       } else {
         // Redirect based on user role
-        if (data.data.user.isAdmin) {
+        if (data.user.isAdmin) {
           navigate('/admin/dashboard');
         } else {
           navigate('/profile');
         }
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -105,35 +94,24 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(ENDPOINTS.AUTH.REGISTER, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
-
-      dispatch(setUser(data.data.user));
-      localStorage.setItem('token', data.token);
+      const response = await api.post('/auth/register', formData);
+      
+      const { token, data } = response.data;
+      dispatch(setUser(data.user));
+      localStorage.setItem('token', token);
       
       // Close the dialog
       onClose();
 
-      // Get the redirect location from state, or default to profile/admin dashboard
+      // Get the redirect location from state, or default to profile
       const state = location.state as LocationState;
       if (state?.from) {
         navigate(state.from.pathname);
       } else {
         navigate('/profile'); // New users are never admin
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
