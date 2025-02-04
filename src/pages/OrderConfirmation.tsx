@@ -41,9 +41,12 @@ export default function OrderConfirmation() {
   const handlePlaceOrder = async () => {
     setIsSubmitting(true);
     setError("");
-    
+
     try {
-      const order = await orderService.createOrder(state.customerInfo, state.items);
+      const order = await orderService.createOrder(
+        state.customerInfo,
+        state.items
+      );
       setOrderNumber(order.id);
       setOrderConfirmed(true);
       dispatch(clearCart());
@@ -95,13 +98,15 @@ export default function OrderConfirmation() {
             Order Review
           </Typography>
         )}
-        
+
         {error && (
           <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
             {error}
           </Alert>
         )}
-
+        <Typography variant="h5" gutterBottom>
+          this is test of text.
+        </Typography>
         <Paper elevation={3} sx={{ width: "100%", mt: 4, p: 3 }}>
           <Typography variant="h6" gutterBottom>
             {orderConfirmed ? "Order Details" : "Review Your Order"}
@@ -133,13 +138,16 @@ export default function OrderConfirmation() {
               <br />
               {state.customerInfo.address.street}
               <br />
-              {state.customerInfo.address.city}, {state.customerInfo.address.state}{" "}
+              {state.customerInfo.address.city},{" "}
+              {state.customerInfo.address.state}{" "}
               {state.customerInfo.address.zipCode}
             </Typography>
           </Box>
 
           {!orderConfirmed && (
-            <Box sx={{ mt: 4, display: "flex", justifyContent: "space-between" }}>
+            <Box
+              sx={{ mt: 4, display: "flex", justifyContent: "space-between" }}
+            >
               <Button
                 variant="outlined"
                 onClick={() => navigate(-1)}
