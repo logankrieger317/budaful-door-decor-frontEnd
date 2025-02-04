@@ -24,6 +24,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProductEditor from "./pages/AdminProductEditor";
 import EditProduct from "./pages/EditProduct";
+import Profile from "./pages/Profile";
 import { HelmetProvider } from 'react-helmet-async';
 
 const theme = createTheme({
@@ -101,6 +102,7 @@ function AppContent(): JSX.Element {
           <Route path="/contact" element={<Contact />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/products/:sku/edit" element={<EditProduct />} />
