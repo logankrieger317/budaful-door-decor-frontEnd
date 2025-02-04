@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -20,11 +20,13 @@ import {
   Card,
   CardContent,
   Snackbar,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
-import { RootState } from "../store/store";
+import { RootState } from "../store";
 // import { clearCart } from "../store/cartSlice";
-// import orderService, { Order } from "../services/orderService";
-import { CustomerInfo, CartItem } from "../types";
+import { setUser } from "../store/userSlice";
+import { CartItem } from "../types";
 
 const steps = ["Review Order", "Customer Information", "Confirm Order"];
 
@@ -32,6 +34,8 @@ export default function Checkout(): JSX.Element {
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [createAccount, setCreateAccount] = useState(false);
+  const [password, setPassword] = useState("");
 
   // Form state
   const [email, setEmail] = useState("");
@@ -47,8 +51,9 @@ export default function Checkout(): JSX.Element {
   const [shippingZip, setShippingZip] = useState("");
 
   const { items } = useSelector((state: RootState) => state.cart);
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.user.currentUser);
 
   const total = items.reduce<number>(
     (sum: number, item: CartItem) => sum + item.price * item.quantity,
@@ -63,9 +68,66 @@ export default function Checkout(): JSX.Element {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    handleNext(); // Just move to the next step
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      // If user wants to create an account
+      if (!user && createAccount) {
+        const registerResponse = await fetch(
+          process.env.REACT_APP_API_URL + "/api/auth/register",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email,
+              password,
+              firstName,
+              lastName,
+            }),
+          }
+        );
+
+        if (!registerResponse.ok) {
+          throw new Error("Failed to create account");
+        }
+
+        const { user: newUser, token } = await registerResponse.json();
+        dispatch(setUser(newUser));
+        localStorage.setItem("token", token);
+      }
+
+      // Navigate to order confirmation
+      navigate("/order-confirmation", {
+        state: {
+          customerInfo: {
+            email,
+            firstName,
+            lastName,
+            phone,
+            address: {
+              street: shippingAddress1,
+              city: shippingCity,
+              state: shippingState,
+              zipCode: shippingZip,
+            },
+            notes,
+          },
+          items,
+          total,
+          isPending: true,
+        },
+      });
+    } catch (err) {
+      console.error("Error in checkout:", err);
+      setErrorMessage("An error occurred during checkout. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePlaceOrder = async () => {
@@ -73,24 +135,22 @@ export default function Checkout(): JSX.Element {
     setErrorMessage("");
 
     try {
-      const customerInfo: CustomerInfo = {
-        email,
-        firstName,
-        lastName,
-        phone,
-        address: {
-          street: shippingAddress1,
-          city: shippingCity,
-          state: shippingState,
-          zipCode: shippingZip,
-        },
-        notes,
-      };
-
       // Navigate to order confirmation
       navigate("/order-confirmation", {
         state: {
-          customerInfo,
+          customerInfo: {
+            email,
+            firstName,
+            lastName,
+            phone,
+            address: {
+              street: shippingAddress1,
+              city: shippingCity,
+              state: shippingState,
+              zipCode: shippingZip,
+            },
+            notes,
+          },
           items,
           total,
           isPending: true,
@@ -235,6 +295,33 @@ export default function Checkout(): JSX.Element {
             onChange={(e) => setNotes(e.target.value)}
           />
         </Grid>
+        {/* Account Creation Option */}
+        {!user && (
+          <Box sx={{ mt: 3, mb: 2 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={createAccount}
+                  onChange={(e) => setCreateAccount(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Create an account for faster checkout next time"
+            />
+            {createAccount && (
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            )}
+          </Box>
+        )}
       </Grid>
     );
   };
@@ -346,7 +433,8 @@ export default function Checkout(): JSX.Element {
                     !shippingAddress1 ||
                     !shippingCity ||
                     !shippingState ||
-                    !shippingZip
+                    !shippingZip ||
+                    (createAccount && !password)
                   }
                 >
                   Next
