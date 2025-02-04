@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { clearUser } from '../store/userSlice';
 import { 
   AppBar, 
   Toolbar, 
@@ -55,7 +56,12 @@ export default function Header(): JSX.Element {
   };
 
   const handleLogout = () => {
-    // Implement logout logic here
+    // Clear user from Redux store
+    dispatch(clearUser());
+    // Remove token from localStorage
+    localStorage.removeItem('token');
+    // Navigate to home page
+    navigate('/');
   };
 
   return (

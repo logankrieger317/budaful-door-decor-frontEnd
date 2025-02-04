@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface User {
-  id: string;
+  id: number;
   email: string;
   firstName: string;
   lastName: string;
@@ -24,23 +24,19 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<User | null>) => {
+    setUser: (state, action: PayloadAction<User>) => {
       state.currentUser = action.payload;
       state.error = null;
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
-    },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
-    logout: (state) => {
+    clearUser: (state) => {
       state.currentUser = null;
       state.error = null;
-      localStorage.removeItem('token');
+    },
+    setError: (state, action: PayloadAction<string>) => {
+      state.error = action.payload;
     },
   },
 });
 
-export const { setUser, setLoading, setError, logout } = userSlice.actions;
+export const { setUser, clearUser, setError } = userSlice.actions;
 export default userSlice.reducer;
