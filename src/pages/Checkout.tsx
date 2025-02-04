@@ -83,27 +83,18 @@ export default function Checkout(): JSX.Element {
         notes,
       };
 
-      console.log("Submitting order with customer info:", customerInfo);
-      const order: Order = await orderService.createOrder(customerInfo, items);
-      console.log("Order creation response:", order);
-
-      // Navigate with the order details
-      dispatch(clearCart());
+      // Instead of creating the order here, just navigate to confirmation with the info
       navigate("/order-confirmation", {
         state: {
-          orderNumber: order.id,
-          total: parseFloat(order.totalAmount),
           customerInfo,
+          items,
+          total,
+          isPending: true
         },
-        replace: true,
       });
     } catch (error) {
-      console.error("Error creating order:", error);
-      if (error instanceof Error) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage("An unexpected error occurred");
-      }
+      console.error("Error in checkout:", error);
+      setErrorMessage("An error occurred during checkout. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
