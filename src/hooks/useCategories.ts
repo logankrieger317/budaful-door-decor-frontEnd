@@ -12,7 +12,7 @@ export interface Category {
 const defaultCategories: Category[] = [
   {
     name: 'Wired Ribbons',
-    image: getCloudinaryUrl('', '/images/wired ribbon example.jpeg'),
+    image: getCloudinaryUrl('/images/wired ribbon example.jpeg'),
     link: '/products?category=wired-ribbon',
   },
   {
