@@ -29,6 +29,7 @@ export default function LoginDialog({
   const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -45,66 +46,98 @@ export default function LoginDialog({
     setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError('');
+    setIsLoading(true);
 
     try {
-      const apiUrl =
-        "https://budafuldoordecorbackend-production.up.railway.app";
-      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-
-      console.log("Sending auth request to:", `${apiUrl}${endpoint}`);
-
-      const response = await fetch(`${apiUrl}${endpoint}`, {
-        method: "POST",
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(
-          isLogin
-            ? {
-                email: formData.email,
-                password: formData.password,
-              }
-            : {
-                email: formData.email,
-                password: formData.password,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-              }
-        ),
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.error("Auth error:", data);
-        throw new Error(data.message || "Authentication failed");
+        throw new Error(data.message || 'Login failed');
       }
 
-      // Store token and user data
-      localStorage.setItem("token", data.token);
-      dispatch(
-        setUser({
-          id: data.data.user.id,
-          email: data.data.user.email,
-          firstName: data.data.user.firstName,
-          lastName: data.data.user.lastName,
-          isAdmin: data.data.user.isAdmin || false,
-        })
-      );
+      dispatch(setUser(data.data.user));
+      localStorage.setItem('token', data.token);
+      
+      // Close the dialog
       onClose();
 
-      // Redirect admin users to dashboard, regular users to profile
-      if (data.data.user.isAdmin) {
-        navigate("/admin/dashboard");
+      // Get the redirect location from state, or default to profile/admin dashboard
+      const location = (window.location.state as any)?.from;
+      if (location) {
+        navigate(location.pathname);
       } else {
-        navigate("/profile");
+        // Redirect based on user role
+        if (data.data.user.isAdmin) {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/profile');
+        }
       }
     } catch (err) {
-      console.error("Auth error:", err);
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: formData.email, 
+          password: formData.password, 
+          firstName: formData.firstName, 
+          lastName: formData.lastName 
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      dispatch(setUser(data.data.user));
+      localStorage.setItem('token', data.token);
+      
+      // Close the dialog
+      onClose();
+
+      // Get the redirect location from state, or default to profile/admin dashboard
+      const location = (window.location.state as any)?.from;
+      if (location) {
+        navigate(location.pathname);
+      } else {
+        // Redirect based on user role
+        if (data.data.user.isAdmin) {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/profile');
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -118,7 +151,7 @@ export default function LoginDialog({
           </IconButton>
         </Box>
       </DialogTitle>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={isLogin ? handleLogin : handleRegister}>
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>

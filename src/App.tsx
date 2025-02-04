@@ -27,6 +27,7 @@ import EditProduct from "./pages/EditProduct";
 import Profile from "./pages/Profile";
 import OrderDetails from "./pages/OrderDetails";
 import { HelmetProvider } from 'react-helmet-async';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 const theme = createTheme({
   palette: {
@@ -103,12 +104,47 @@ function AppContent(): JSX.Element {
           <Route path="/contact" element={<Contact />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/order/:orderId" element={<OrderDetails />} />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/order/:orderId" 
+            element={
+              <ProtectedRoute>
+                <OrderDetails />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/products/:sku/edit" element={<EditProduct />} />
-          <Route path="/admin/products/:productId" element={<AdminProductEditor />} />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/products/:sku/edit" 
+            element={
+              <ProtectedRoute requireAdmin>
+                <EditProduct />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/products/:productId" 
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminProductEditor />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Box>
