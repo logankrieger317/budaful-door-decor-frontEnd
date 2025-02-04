@@ -27,6 +27,7 @@ import { RootState } from "../store";
 import { clearCart } from "../store/cartSlice";
 import { setUser } from "../store/userSlice";
 import { CartItem } from "../types";
+import api from "../utils/api";
 
 const steps = ["Review Order", "Customer Information", "Confirm Order"];
 
@@ -60,7 +61,38 @@ export default function Checkout(): JSX.Element {
     0
   );
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // If on customer info step and user wants to create account, validate first
+    if (activeStep === 1 && !user && createAccount) {
+      setIsSubmitting(true);
+      setErrorMessage("");
+
+      try {
+        // Validate required fields
+        if (!email || !password || !firstName || !lastName) {
+          throw new Error("Please fill in all required fields");
+        }
+
+        // Register new user
+        const response = await api.post('/auth/register', {
+          email,
+          password,
+          firstName,
+          lastName,
+          phone
+        });
+
+        const { token, data } = response.data;
+        dispatch(setUser(data.user));
+        localStorage.setItem("token", token);
+      } catch (err: any) {
+        console.error("Error creating account:", err);
+        setErrorMessage(err.response?.data?.message || "Failed to create account. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
 
@@ -76,28 +108,16 @@ export default function Checkout(): JSX.Element {
     try {
       // If user wants to create an account
       if (!user && createAccount) {
-        const registerResponse = await fetch(
-          process.env.REACT_APP_API_URL + "/api/auth/register",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email,
-              password,
-              firstName,
-              lastName,
-            }),
-          }
-        );
+        const registerResponse = await api.post('/auth/register', {
+          email,
+          password,
+          firstName,
+          lastName,
+          phone
+        });
 
-        if (!registerResponse.ok) {
-          throw new Error("Failed to create account");
-        }
-
-        const { user: newUser, token } = await registerResponse.json();
-        dispatch(setUser(newUser));
+        const { token, data } = registerResponse.data;
+        dispatch(setUser(data.user));
         localStorage.setItem("token", token);
       }
 
@@ -135,9 +155,6 @@ export default function Checkout(): JSX.Element {
     setErrorMessage("");
 
     try {
-      const apiUrl = "https://budafuldoordecorbackend-production.up.railway.app";
-      console.log('Sending order to:', `${apiUrl}/api/orders`);
-
       // Format address as a string
       const formattedAddress = `${shippingAddress1}, ${shippingCity}, ${shippingState} ${shippingZip}`;
 
@@ -156,26 +173,8 @@ export default function Checkout(): JSX.Element {
         totalAmount: Number(total.toFixed(2))
       };
 
-      console.log('Order payload:', JSON.stringify(orderPayload, null, 2));
-
-      const orderResponse = await fetch(`${apiUrl}/api/orders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(user && { Authorization: `Bearer ${localStorage.getItem("token")}` }),
-        },
-        body: JSON.stringify(orderPayload),
-      });
-
-      const responseData = await orderResponse.json();
-      console.log('Order response:', responseData);
-
-      if (!orderResponse.ok) {
-        console.error('Order creation failed:', responseData);
-        throw new Error(responseData.message || "Failed to create order");
-      }
-
-      const { data: { order } } = responseData;
+      const response = await api.post('/orders', orderPayload);
+      const { data: { order } } = response.data;
 
       // Clear cart after successful order
       dispatch(clearCart());
@@ -197,9 +196,9 @@ export default function Checkout(): JSX.Element {
           isPending: false,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in checkout:", error);
-      setErrorMessage(error instanceof Error ? error.message : "An error occurred during checkout. Please try again.");
+      setErrorMessage(error.response?.data?.message || "An error occurred during checkout. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -338,7 +337,7 @@ export default function Checkout(): JSX.Element {
         </Grid>
         {/* Account Creation Option */}
         {!user && (
-          <Box sx={{ mt: 3, mb: 2 }}>
+          <Grid item xs={12}>
             <FormControlLabel
               control={
                 <Checkbox
@@ -361,7 +360,7 @@ export default function Checkout(): JSX.Element {
                 onChange={(e) => setPassword(e.target.value)}
               />
             )}
-          </Box>
+          </Grid>
         )}
       </Grid>
     );
