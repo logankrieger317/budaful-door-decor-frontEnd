@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { productsApi } from '../api/products';
+import { getCloudinaryUrl } from '../utils/imageUtils';
 
 export interface Category {
   name: string;
@@ -11,32 +12,32 @@ export interface Category {
 const defaultCategories: Category[] = [
   {
     name: 'Wired Ribbons',
-    image: '',
+    image: getCloudinaryUrl('https://res.cloudinary.com/dfszr2lob/image/upload/v1738631290/wired_ribbon_example_ca7jcj.webp'),
     link: '/products?category=wired-ribbon',
   },
   {
     name: 'Velvet Ribbons',
-    image: '',
+    image: getCloudinaryUrl('https://res.cloudinary.com/dfszr2lob/image/upload/v1738631290/velvet_ribbon_example.webp'),
     link: '/products?category=velvet-ribbon',
   },
   {
     name: 'Embossed Ribbons',
-    image: '',
+    image: getCloudinaryUrl('https://res.cloudinary.com/dfszr2lob/image/upload/v1738631290/embossed_ribbon_example.webp'),
     link: '/products?category=embossed-ribbon',
   },
   {
     name: 'Diamond Dust Ribbons',
-    image: '',
+    image: getCloudinaryUrl('https://res.cloudinary.com/dfszr2lob/image/upload/v1738631290/diamond_dust_ribbon_example.webp'),
     link: '/products?category=diamond-dust-ribbon',
   },
   {
     name: 'Satin Ribbons',
-    image: '',
+    image: getCloudinaryUrl('https://res.cloudinary.com/dfszr2lob/image/upload/v1738631290/satin_ribbon_example.webp'),
     link: '/products?category=satin-ribbon',
   },
   {
     name: 'Acetate Ribbons',
-    image: '',
+    image: getCloudinaryUrl('https://res.cloudinary.com/dfszr2lob/image/upload/v1738631290/acetate_ribbon_example.webp'),
     link: '/products?category=acetate-ribbon',
   },
 ];
