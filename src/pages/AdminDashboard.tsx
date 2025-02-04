@@ -630,7 +630,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleStatusTabChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleStatusTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setStatusFilter(newValue);
   };
 
@@ -718,7 +718,9 @@ const AdminDashboard = () => {
   const handleOrderRestore = async (orderId: string) => {
     try {
       const response = await api.post(`/api/admin/orders/${orderId}/restore`);
-      setOrders(orders.map((order) => (order.id === orderId ? response.data : order)));
+      setOrders(
+        orders.map((order) => (order.id === orderId ? response.data : order))
+      );
       showSnackbar("Order restored successfully", "success");
     } catch (error: any) {
       console.error("Error restoring order:", error);
@@ -758,6 +760,34 @@ const AdminDashboard = () => {
     localStorage.removeItem("adminUser");
     navigate("/admin/login");
   };
+
+  const SortableTableCell = ({
+    field,
+    label,
+  }: {
+    field: SortField;
+    label: string;
+  }) => (
+    <TableCell
+      onClick={() => handleSort(field)}
+      sx={{
+        cursor: "pointer",
+        userSelect: "none",
+        "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        {label}
+        {sortField === field && (
+          sortDirection === "asc" ? (
+            <ArrowUpwardIcon fontSize="small" />
+          ) : (
+            <ArrowDownwardIcon fontSize="small" />
+          )
+        )}
+      </Box>
+    </TableCell>
+  );
 
   return (
     <Container maxWidth={false}>
@@ -813,11 +843,25 @@ const AdminDashboard = () => {
                 <Tab label="Cancelled" value="cancelled" />
               </Tabs>
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                mb: 2,
+                flexWrap: "wrap",
+                gap: 1,
+              }}
+            >
               <Typography variant="h5" component="h1" gutterBottom={isMobile}>
-                Orders {statusFilter !== "all" ? `- ${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}` : ""}
+                Orders{" "}
+                {statusFilter !== "all"
+                  ? `- ${
+                      statusFilter.charAt(0).toUpperCase() +
+                      statusFilter.slice(1)
+                    }`
+                  : ""}
               </Typography>
-              
+
               <FormControlLabel
                 control={
                   <Switch
@@ -847,15 +891,15 @@ const AdminDashboard = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell />
-                      <TableCell>Order Number</TableCell>
-                      <TableCell>Customer</TableCell>
-                      <TableCell>Contact</TableCell>
-                      <TableCell>Total</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Payment</TableCell>
-                      <TableCell>Date</TableCell>
+                      <SortableTableCell field="id" label="Order Number" />
+                      <SortableTableCell field="customerName" label="Customer" />
+                      <SortableTableCell field="contact" label="Contact" />
+                      <SortableTableCell field="totalAmount" label="Total" />
+                      <SortableTableCell field="status" label="Status" />
+                      <SortableTableCell field="paymentStatus" label="Payment" />
+                      <SortableTableCell field="createdAt" label="Date" />
                       {showDeleted && (
-                        <TableCell>Deleted At</TableCell>
+                        <SortableTableCell field="deletedAt" label="Deleted At" />
                       )}
                       <TableCell>Actions</TableCell>
                     </TableRow>
