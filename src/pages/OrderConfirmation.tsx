@@ -104,9 +104,33 @@ export default function OrderConfirmation() {
             {error}
           </Alert>
         )}
-        <Typography variant="h5" gutterBottom>
-          this is test of text.
-        </Typography>
+
+        {!orderConfirmed && (
+          <Alert 
+            severity="info" 
+            sx={{ 
+              width: "100%", 
+              mb: 4,
+              '& .MuiAlert-message': {
+                width: '100%'
+              }
+            }}
+          >
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium', color: 'primary.main' }}>
+              Thank you for considering our business!
+            </Typography>
+            <Typography variant="body1" paragraph>
+              We are a new business and still working with our partners to provide the lowest cost payment solution to keep our prices as low as possible.
+            </Typography>
+            <Typography variant="body1" paragraph>
+              By placing your order, we will be contacting you via phone and email to confirm the order and collect payment. We will request payment through Venmo or through a payment card over the phone which will be processed through our Square Terminal.
+            </Typography>
+            <Typography variant="body1">
+              We appreciate your understanding as we work to have our online payment system approved and implemented into the site.
+            </Typography>
+          </Alert>
+        )}
+
         <Paper elevation={3} sx={{ width: "100%", mt: 4, p: 3 }}>
           <Typography variant="h6" gutterBottom>
             {orderConfirmed ? "Order Details" : "Review Your Order"}
