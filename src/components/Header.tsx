@@ -79,7 +79,7 @@ export default function Header(): JSX.Element {
                   color="inherit"
                   aria-label="menu"
                   onClick={handleMenuClick}
-                  sx={{ mr: 1 }}
+                  sx={{ mr: 1, color: 'text.primary' }}
                 >
                   <MenuIcon />
                 </IconButton>
@@ -89,9 +89,15 @@ export default function Header(): JSX.Element {
                 {menuItems.map((item) => (
                   <Button
                     key={item.text}
-                    color="inherit"
                     onClick={() => handleMenuItemClick(item.path)}
-                    sx={{ mx: 1 }}
+                    sx={{ 
+                      mx: 1,
+                      color: 'text.primary',
+                      fontWeight: 500,
+                      '&:hover': {
+                        color: 'primary.main',
+                      }
+                    }}
                   >
                     {item.text}
                   </Button>
@@ -102,27 +108,42 @@ export default function Header(): JSX.Element {
             <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
               {user ? (
                 <Button
-                  color="inherit"
                   startIcon={<PersonIcon />}
                   onClick={() => navigate('/profile')}
-                  sx={{ mr: 2 }}
+                  sx={{ 
+                    mr: 2,
+                    color: 'text.primary',
+                    '&:hover': {
+                      color: 'primary.main',
+                    }
+                  }}
                 >
                   {user.firstName}
                 </Button>
               ) : (
                 <Button
-                  color="inherit"
                   startIcon={<PersonIcon />}
                   onClick={() => setLoginDialogOpen(true)}
-                  sx={{ mr: 2 }}
+                  sx={{ 
+                    mr: 2,
+                    color: 'text.primary',
+                    '&:hover': {
+                      color: 'primary.main',
+                    }
+                  }}
                 >
                   Login
                 </Button>
               )}
               <IconButton
-                color="inherit"
                 aria-label="cart"
                 onClick={() => dispatch(toggleCart())}
+                sx={{ 
+                  color: 'text.primary',
+                  '&:hover': {
+                    color: 'primary.main',
+                  }
+                }}
               >
                 <Badge badgeContent={itemCount} color="secondary">
                   <ShoppingCartIcon />
