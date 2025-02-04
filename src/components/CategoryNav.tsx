@@ -4,12 +4,12 @@ import { AppBar, Toolbar, Button, Container, useTheme, useMediaQuery, Menu, Menu
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 export const categories = [
-  { id: 'seasonal', name: 'Seasonal' },
-  { id: 'florals', name: 'Florals' },
-  { id: 'greenery', name: 'Greenery' },
-  { id: 'ribbons', name: 'Ribbons' },
-  { id: 'containers', name: 'Containers' },
-  { id: 'custom', name: 'Custom Orders' },
+  { id: 'wired-ribbon', name: 'Wired Ribbons' },
+  { id: 'velvet-ribbon', name: 'Velvet Ribbons' },
+  { id: 'embossed-ribbon', name: 'Embossed Ribbons' },
+  { id: 'diamond-dust-ribbon', name: 'Diamond Dust Ribbons' },
+  { id: 'satin-ribbon', name: 'Satin Ribbons' },
+  { id: 'acetate-ribbon', name: 'Acetate Ribbons' },
 ];
 
 export default function CategoryNav(): JSX.Element {
@@ -25,7 +25,7 @@ export default function CategoryNav(): JSX.Element {
     if (categoryId === 'all') {
       navigate('/products');
     } else {
-      navigate(`/category/${categoryId}`);
+      navigate(`/products?category=${categoryId}`);
     }
     setAnchorEl(null);
   };
@@ -52,33 +52,26 @@ export default function CategoryNav(): JSX.Element {
         }}
       >
         <Container maxWidth="lg">
-          <Toolbar sx={{ justifyContent: 'center' }}>
+          <Toolbar disableGutters>
             <Button
               onClick={handleMobileMenuClick}
               endIcon={<KeyboardArrowDownIcon />}
               sx={{ color: 'text.primary' }}
             >
-              {categories.find(cat => cat.id === currentCategory)?.name || 'All Products'}
+              {currentCategory === 'all' 
+                ? 'All Categories'
+                : categories.find(cat => cat.id === currentCategory)?.name || 'All Categories'}
             </Button>
             <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleMobileMenuClose}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'center',
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'center',
-              }}
             >
-              <MenuItem
-                key="all"
+              <MenuItem 
                 onClick={() => handleCategoryClick('all')}
                 selected={currentCategory === 'all'}
               >
-                All Products
+                All Categories
               </MenuItem>
               {categories.map((category) => (
                 <MenuItem
@@ -109,42 +102,29 @@ export default function CategoryNav(): JSX.Element {
       }}
     >
       <Container maxWidth="lg">
-        <Toolbar sx={{ justifyContent: 'center', gap: 2 }}>
-          <Tabs
-            value={currentCategory}
-            onChange={(_, newValue) => {
-              if (newValue === 'all') {
-                navigate('/products');
-              } else {
-                navigate(`/category/${newValue}`);
-              }
-            }}
+        <Toolbar disableGutters sx={{ overflowX: 'auto' }}>
+          <Tabs 
+            value={currentCategory} 
+            onChange={(_, value) => handleCategoryClick(value)}
             variant="scrollable"
             scrollButtons="auto"
-            aria-label="Product Categories"
             sx={{
               '& .MuiTab-root': {
                 textTransform: 'none',
                 minWidth: 'auto',
                 px: 3,
-              },
+              }
             }}
           >
-            <Tab
-              label="All Products"
+            <Tab 
+              label="All Categories"
               value="all"
-              sx={{
-                color: currentCategory === 'all' ? 'primary.main' : 'text.primary',
-              }}
             />
             {categories.map((category) => (
               <Tab
                 key={category.id}
                 label={category.name}
                 value={category.id}
-                sx={{
-                  color: currentCategory === category.id ? 'primary.main' : 'text.primary',
-                }}
               />
             ))}
           </Tabs>
