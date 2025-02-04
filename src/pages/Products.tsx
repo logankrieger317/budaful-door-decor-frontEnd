@@ -334,7 +334,12 @@ export default function Products(): JSX.Element {
       />
 
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ display: "flex", gap: 2, mb: 4 }}>
+        <Box sx={{ 
+          display: "flex", 
+          flexDirection: { xs: "column", md: "row" },
+          gap: 2, 
+          mb: 4 
+        }}>
           <Typography
             variant="h4"
             component="h1"
@@ -342,14 +347,24 @@ export default function Products(): JSX.Element {
               flexGrow: 1,
               fontWeight: "bold",
               color: "text.primary",
+              mb: { xs: 2, md: 0 }
             }}
           >
             {categoryName}
           </Typography>
 
           {/* Sort and Filter Controls */}
-          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-            <FormControl sx={{ minWidth: 200 }}>
+          <Box sx={{ 
+            display: "flex", 
+            gap: 2, 
+            alignItems: "center",
+            flexWrap: { xs: "wrap", md: "nowrap" },
+            width: { xs: "100%", md: "auto" }
+          }}>
+            <FormControl sx={{ 
+              minWidth: 200,
+              width: { xs: "100%", sm: "auto" }
+            }}>
               <InputLabel>Sort By</InputLabel>
               <Select
                 value={sortOption}
@@ -368,6 +383,9 @@ export default function Products(): JSX.Element {
                 startIcon={<FilterListIcon />}
                 onClick={() => setIsFilterDrawerOpen(true)}
                 variant="outlined"
+                sx={{ 
+                  width: { xs: "100%", sm: "auto" }
+                }}
               >
                 Filters
               </Button>
