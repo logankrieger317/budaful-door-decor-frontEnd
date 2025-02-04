@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/userSlice';
+import { ENDPOINTS } from '../config/constants';
 import {
   Dialog,
   DialogTitle,
@@ -56,7 +57,7 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
+      const response = await fetch(ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,7 +105,7 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/register`, {
+      const response = await fetch(ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
