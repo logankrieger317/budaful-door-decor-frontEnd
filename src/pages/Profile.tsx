@@ -23,6 +23,13 @@ interface TabPanelProps {
   value: number;
 }
 
+interface Order {
+  id: string;
+  status: string;
+  totalAmount: number;
+  createdAt: string;
+}
+
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
@@ -41,7 +48,7 @@ function TabPanel(props: TabPanelProps) {
 
 export default function Profile() {
   const [tabValue, setTabValue] = useState(0);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -80,7 +87,7 @@ export default function Profile() {
     fetchOrders();
   }, [user, navigate]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
