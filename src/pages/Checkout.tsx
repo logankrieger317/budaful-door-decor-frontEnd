@@ -153,9 +153,7 @@ export default function Checkout(): JSX.Element {
         })),
         phone,
         notes: notes || "",
-        totalAmount: Number(total.toFixed(2)),
-        status: "pending",
-        paymentStatus: "pending"
+        totalAmount: Number(total.toFixed(2))
       };
 
       console.log('Order payload:', JSON.stringify(orderPayload, null, 2));
