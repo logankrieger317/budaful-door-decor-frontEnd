@@ -28,6 +28,10 @@ import Profile from "./pages/Profile";
 import OrderDetails from "./pages/OrderDetails";
 import { HelmetProvider } from 'react-helmet-async';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { setUser } from './store/userSlice';
+import { ENDPOINTS } from './config/constants';
 
 const theme = createTheme({
   palette: {
@@ -155,6 +159,36 @@ function AppContent(): JSX.Element {
 }
 
 function App(): JSX.Element {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await fetch(ENDPOINTS.AUTH.PROFILE, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            dispatch(setUser(data.user));
+          } else {
+            // If token is invalid, remove it
+            localStorage.removeItem('token');
+          }
+        } catch (error) {
+          console.error('Error checking auth status:', error);
+          localStorage.removeItem('token');
+        }
+      }
+    };
+
+    checkAuthStatus();
+  }, [dispatch]);
+
   return (
     <Provider store={store}>
       <HelmetProvider>

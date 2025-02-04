@@ -5,6 +5,7 @@ export const ENDPOINTS = {
     LOGIN: `${API_BASE_URL}/auth/login`,
     REGISTER: `${API_BASE_URL}/auth/register`,
     PROFILE: `${API_BASE_URL}/auth/profile`,
+    PROFILE_DETAILS: `${API_BASE_URL}/auth/profile/details`
   },
   ORDERS: {
     LIST: `${API_BASE_URL}/orders`,
