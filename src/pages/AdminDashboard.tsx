@@ -550,6 +550,7 @@ const AdminDashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [tab, setTab] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [orders, setOrders] = useState<Order[]>([]);
   const [showDeleted, setShowDeleted] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -567,6 +568,59 @@ const AdminDashboard = () => {
   });
   const navigate = useNavigate();
 
+  // Filter orders based on status
+  const filteredOrders = orders.filter((order) => {
+    if (statusFilter === "all") return true;
+    return order.status === statusFilter;
+  });
+
+  // Sort the filtered orders
+  const sortedOrders = filteredOrders.sort((a, b) => {
+    let compareA: string | number;
+    let compareB: string | number;
+
+    switch (sortField) {
+      case "id":
+        compareA = a.id;
+        compareB = b.id;
+        break;
+      case "customerName":
+        compareA = a.customerName.toLowerCase();
+        compareB = b.customerName.toLowerCase();
+        break;
+      case "contact":
+        compareA = (a.customerEmail + (a.phone || "")).toLowerCase();
+        compareB = (b.customerEmail + (b.phone || "")).toLowerCase();
+        break;
+      case "totalAmount":
+        compareA = a.totalAmount;
+        compareB = b.totalAmount;
+        break;
+      case "status":
+        compareA = a.status.toLowerCase();
+        compareB = b.status.toLowerCase();
+        break;
+      case "paymentStatus":
+        compareA = a.paymentStatus.toLowerCase();
+        compareB = b.paymentStatus.toLowerCase();
+        break;
+      case "createdAt":
+        compareA = new Date(a.createdAt).getTime();
+        compareB = new Date(b.createdAt).getTime();
+        break;
+      case "deletedAt":
+        compareA = a.deletedAt ? new Date(a.deletedAt).getTime() : 0;
+        compareB = b.deletedAt ? new Date(b.deletedAt).getTime() : 0;
+        break;
+      default:
+        return 0;
+    }
+
+    if (compareA < compareB) return sortDirection === "asc" ? -1 : 1;
+    if (compareA > compareB) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -576,80 +630,9 @@ const AdminDashboard = () => {
     }
   };
 
-  const sortOrders = (ordersToSort: Order[]) => {
-    return [...ordersToSort].sort((a, b) => {
-      let compareA: string | number;
-      let compareB: string | number;
-
-      switch (sortField) {
-        case "id":
-          compareA = a.id;
-          compareB = b.id;
-          break;
-        case "customerName":
-          compareA = a.customerName.toLowerCase();
-          compareB = b.customerName.toLowerCase();
-          break;
-        case "contact":
-          compareA = (a.customerEmail + (a.phone || "")).toLowerCase();
-          compareB = (b.customerEmail + (b.phone || "")).toLowerCase();
-          break;
-        case "totalAmount":
-          compareA = a.totalAmount;
-          compareB = b.totalAmount;
-          break;
-        case "status":
-          compareA = a.status.toLowerCase();
-          compareB = b.status.toLowerCase();
-          break;
-        case "paymentStatus":
-          compareA = a.paymentStatus.toLowerCase();
-          compareB = b.paymentStatus.toLowerCase();
-          break;
-        case "createdAt":
-          compareA = new Date(a.createdAt).getTime();
-          compareB = new Date(b.createdAt).getTime();
-          break;
-        case "deletedAt":
-          compareA = a.deletedAt ? new Date(a.deletedAt).getTime() : 0;
-          compareB = b.deletedAt ? new Date(b.deletedAt).getTime() : 0;
-          break;
-        default:
-          return 0;
-      }
-
-      if (compareA < compareB) return sortDirection === "asc" ? -1 : 1;
-      if (compareA > compareB) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
+  const handleStatusTabChange = (event: React.SyntheticEvent, newValue: string) => {
+    setStatusFilter(newValue);
   };
-
-  const SortableTableCell = ({
-    field,
-    label,
-  }: {
-    field: SortField;
-    label: string;
-  }) => (
-    <TableCell
-      onClick={() => handleSort(field)}
-      sx={{
-        cursor: "pointer",
-        userSelect: "none",
-        "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
-      }}
-    >
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        {label}
-        {sortField === field &&
-          (sortDirection === "asc" ? (
-            <ArrowUpwardIcon fontSize="small" />
-          ) : (
-            <ArrowDownwardIcon fontSize="small" />
-          ))}
-      </Box>
-    </TableCell>
-  );
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
@@ -811,7 +794,30 @@ const AdminDashboard = () => {
           </Tabs>
 
           <TabPanel value={tab} index={0}>
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
+              <Tabs
+                value={statusFilter}
+                onChange={handleStatusTabChange}
+                variant={isMobile ? "scrollable" : "standard"}
+                scrollButtons={isMobile ? "auto" : false}
+                sx={{
+                  "& .MuiTab-root": {
+                    textTransform: "capitalize",
+                  },
+                }}
+              >
+                <Tab label="All Orders" value="all" />
+                <Tab label="Processing" value="processing" />
+                <Tab label="Shipped" value="shipped" />
+                <Tab label="Delivered" value="delivered" />
+                <Tab label="Cancelled" value="cancelled" />
+              </Tabs>
+            </Box>
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
+              <Typography variant="h5" component="h1" gutterBottom={isMobile}>
+                Orders {statusFilter !== "all" ? `- ${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}` : ""}
+              </Typography>
+              
               <FormControlLabel
                 control={
                   <Switch
@@ -822,69 +828,50 @@ const AdminDashboard = () => {
                 label="Show Deleted Orders"
               />
             </Box>
+
             {isMobile ? (
-              <Box sx={{ mt: 2 }}>
-                {sortOrders(orders).map((order) => (
-                  <OrderRow
-                    key={order.id}
-                    order={order}
-                    onOrderUpdate={handleOrderUpdate}
-                    onOrderDelete={handleOrderDelete}
-                    onOrderRestore={handleOrderRestore}
-                    isMobile={isMobile}
-                    showDeleted={showDeleted}
-                  />
-                ))}
-                {orders.length === 0 && (
-                  <Typography align="center" color="text.secondary">
-                    No orders found
-                  </Typography>
-                )}
-              </Box>
+              sortedOrders.map((order) => (
+                <OrderRow
+                  key={order.id}
+                  order={order}
+                  onOrderUpdate={handleOrderUpdate}
+                  onOrderDelete={handleOrderDelete}
+                  onOrderRestore={handleOrderRestore}
+                  isMobile={true}
+                  showDeleted={showDeleted}
+                />
+              ))
             ) : (
               <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell style={{ width: "50px" }} />
-                      <SortableTableCell field="id" label="Order Number" />
-                      <SortableTableCell
-                        field="customerName"
-                        label="Customer"
-                      />
-                      <SortableTableCell field="contact" label="Contact" />
-                      <SortableTableCell field="totalAmount" label="Total" />
-                      <SortableTableCell field="status" label="Status" />
-                      <SortableTableCell
-                        field="paymentStatus"
-                        label="Payment"
-                      />
-                      <SortableTableCell field="createdAt" label="Date" />
+                      <TableCell />
+                      <TableCell>Order Number</TableCell>
+                      <TableCell>Customer</TableCell>
+                      <TableCell>Contact</TableCell>
+                      <TableCell>Total</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Payment</TableCell>
+                      <TableCell>Date</TableCell>
                       {showDeleted && (
-                        <SortableTableCell field="deletedAt" label="Deleted At" />
+                        <TableCell>Deleted At</TableCell>
                       )}
-                      <TableCell style={{ width: "50px" }}>Actions</TableCell>
+                      <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {sortOrders(orders).map((order) => (
+                    {sortedOrders.map((order) => (
                       <OrderRow
                         key={order.id}
                         order={order}
                         onOrderUpdate={handleOrderUpdate}
                         onOrderDelete={handleOrderDelete}
                         onOrderRestore={handleOrderRestore}
-                        isMobile={isMobile}
+                        isMobile={false}
                         showDeleted={showDeleted}
                       />
                     ))}
-                    {orders.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={8} align="center">
-                          No orders found
-                        </TableCell>
-                      </TableRow>
-                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -932,13 +919,6 @@ const AdminDashboard = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {products.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} align="center">
-                        No products found
-                      </TableCell>
-                    </TableRow>
-                  )}
                 </TableBody>
               </Table>
             </TableContainer>
