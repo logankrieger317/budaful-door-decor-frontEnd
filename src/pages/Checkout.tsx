@@ -135,42 +135,50 @@ export default function Checkout(): JSX.Element {
     setErrorMessage("");
 
     try {
-      // Create the order
-      const orderResponse = await fetch(process.env.REACT_APP_API_URL + "/api/orders", {
+      const apiUrl = "https://budafuldoordecorbackend-production.up.railway.app";
+      console.log('Sending order to:', `${apiUrl}/api/orders`);
+
+      const orderPayload = {
+        customerEmail: email,
+        customerName: `${firstName} ${lastName}`,
+        shippingAddress: {
+          street: shippingAddress1,
+          city: shippingCity,
+          state: shippingState,
+          zipCode: shippingZip
+        },
+        billingAddress: {
+          street: shippingAddress1,
+          city: shippingCity,
+          state: shippingState,
+          zipCode: shippingZip
+        },
+        items: items.map(item => ({
+          productSku: item.sku,
+          quantity: Number(item.quantity),
+          price: Number(item.price)
+        })),
+        phone,
+        notes: notes || "",
+        totalAmount: Number(total.toFixed(2)),
+        status: "pending",
+        paymentStatus: "pending"
+      };
+
+      console.log('Order payload:', JSON.stringify(orderPayload, null, 2));
+
+      const orderResponse = await fetch(`${apiUrl}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(user && { Authorization: `Bearer ${localStorage.getItem("token")}` }),
         },
-        body: JSON.stringify({
-          customerEmail: email,
-          customerName: `${firstName} ${lastName}`,
-          shippingAddress: {
-            street: shippingAddress1,
-            city: shippingCity,
-            state: shippingState,
-            zipCode: shippingZip,
-          },
-          billingAddress: {
-            street: shippingAddress1,
-            city: shippingCity,
-            state: shippingState,
-            zipCode: shippingZip,
-          },
-          items: items.map(item => ({
-            productSku: item.sku,
-            quantity: item.quantity,
-            price: parseFloat(item.price.toString())
-          })),
-          phone,
-          notes,
-          totalAmount: parseFloat(total.toFixed(2)),
-          userId: user?.id
-        }),
+        body: JSON.stringify(orderPayload),
       });
 
       if (!orderResponse.ok) {
         const errorData = await orderResponse.json();
+        console.error('Order creation failed:', errorData);
         throw new Error(errorData.message || "Failed to create order");
       }
 

@@ -45,8 +45,12 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps): JSX.El
     setError(null);
 
     try {
+      const apiUrl = "https://budafuldoordecorbackend-production.up.railway.app";
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(process.env.REACT_APP_API_URL + endpoint, {
+      
+      console.log('Sending auth request to:', `${apiUrl}${endpoint}`);
+
+      const response = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,12 +58,18 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps): JSX.El
         body: JSON.stringify(isLogin ? {
           email: formData.email,
           password: formData.password,
-        } : formData),
+        } : {
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        console.error('Auth error:', data);
         throw new Error(data.message || 'Authentication failed');
       }
 
@@ -68,6 +78,7 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps): JSX.El
       dispatch(setUser(data.user));
       onClose();
     } catch (err) {
+      console.error('Auth error:', err);
       setError(err instanceof Error ? err.message : 'Authentication failed');
     }
   };
