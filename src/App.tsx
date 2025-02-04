@@ -82,83 +82,8 @@ const theme = createTheme({
   },
 });
 
-// Wrapper component to handle navigation
-function AppContent(): JSX.Element {
-  const location = useLocation();
-  const showCategoryNav = location.pathname === "/" || location.pathname.startsWith("/products");
-
-  return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        bgcolor: "background.default",
-      }}
-    >
-      <Header />
-      {showCategoryNav && <CategoryNav />}
-      <Box component="main" sx={{ flex: 1, py: 4 }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/category/:categoryId" element={<Products />} />
-          <Route path="/product/:sku" element={<ProductDetail />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/order-confirmation" element={<OrderConfirmation />} />
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/order/:orderId" 
-            element={
-              <ProtectedRoute>
-                <OrderDetails />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/products/:sku/edit" 
-            element={
-              <ProtectedRoute requireAdmin>
-                <EditProduct />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/products/:productId" 
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminProductEditor />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Box>
-      <Cart />
-      <Footer />
-    </Box>
-  );
-}
-
-function App(): JSX.Element {
+// Separate component for auth logic
+function AuthProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -176,7 +101,6 @@ function App(): JSX.Element {
             const data = await response.json();
             dispatch(setUser(data.user));
           } else {
-            // If token is invalid, remove it
             localStorage.removeItem('token');
           }
         } catch (error) {
@@ -189,14 +113,97 @@ function App(): JSX.Element {
     checkAuthStatus();
   }, [dispatch]);
 
+  return <>{children}</>;
+}
+
+// Main app content
+function AppContent() {
+  const location = useLocation();
+  const showCategoryNav = location.pathname === "/" || location.pathname.startsWith("/products");
+
+  return (
+    <AuthProvider>
+      <Router>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            bgcolor: "background.default",
+          }}
+        >
+          <Header />
+          {showCategoryNav && <CategoryNav />}
+          <Box component="main" sx={{ flex: 1, py: 4 }}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/category/:categoryId" element={<Products />} />
+              <Route path="/product/:sku" element={<ProductDetail />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/order-confirmation" element={<OrderConfirmation />} />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/order/:orderId" 
+                element={
+                  <ProtectedRoute>
+                    <OrderDetails />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route 
+                path="/admin/dashboard" 
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/products/:sku/edit" 
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <EditProduct />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/products/:productId" 
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminProductEditor />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Box>
+          <Cart />
+          <Footer />
+        </Box>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+// Root component
+function App(): JSX.Element {
   return (
     <Provider store={store}>
       <HelmetProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Router>
-            <AppContent />
-          </Router>
+          <AppContent />
         </ThemeProvider>
       </HelmetProvider>
     </Provider>
