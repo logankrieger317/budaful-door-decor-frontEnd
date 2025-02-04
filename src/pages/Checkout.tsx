@@ -138,21 +138,14 @@ export default function Checkout(): JSX.Element {
       const apiUrl = "https://budafuldoordecorbackend-production.up.railway.app";
       console.log('Sending order to:', `${apiUrl}/api/orders`);
 
+      // Format address as a string
+      const formattedAddress = `${shippingAddress1}, ${shippingCity}, ${shippingState} ${shippingZip}`;
+
       const orderPayload = {
         customerEmail: email,
         customerName: `${firstName} ${lastName}`,
-        shippingAddress: {
-          street: shippingAddress1,
-          city: shippingCity,
-          state: shippingState,
-          zipCode: shippingZip
-        },
-        billingAddress: {
-          street: shippingAddress1,
-          city: shippingCity,
-          state: shippingState,
-          zipCode: shippingZip
-        },
+        shippingAddress: formattedAddress,
+        billingAddress: formattedAddress,
         items: items.map(item => ({
           productSku: item.sku,
           quantity: Number(item.quantity),
@@ -176,13 +169,15 @@ export default function Checkout(): JSX.Element {
         body: JSON.stringify(orderPayload),
       });
 
+      const responseData = await orderResponse.json();
+      console.log('Order response:', responseData);
+
       if (!orderResponse.ok) {
-        const errorData = await orderResponse.json();
-        console.error('Order creation failed:', errorData);
-        throw new Error(errorData.message || "Failed to create order");
+        console.error('Order creation failed:', responseData);
+        throw new Error(responseData.message || "Failed to create order");
       }
 
-      const { data: { order } } = await orderResponse.json();
+      const { data: { order } } = responseData;
 
       // Clear cart after successful order
       dispatch(clearCart());
@@ -196,12 +191,7 @@ export default function Checkout(): JSX.Element {
             firstName,
             lastName,
             phone,
-            address: {
-              street: shippingAddress1,
-              city: shippingCity,
-              state: shippingState,
-              zipCode: shippingZip,
-            },
+            address: formattedAddress,
             notes,
           },
           items,
