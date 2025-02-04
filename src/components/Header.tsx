@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { clearUser } from '../store/userSlice';
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Button, 
-  IconButton, 
-  Box, 
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { clearUser } from "../store/userSlice";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  Box,
   Container,
   Drawer,
   List,
@@ -16,23 +16,22 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
-  Badge
-} from '@mui/material';
-import { 
+  Badge,
+} from "@mui/material";
+import {
   ShoppingCart as ShoppingCartIcon,
   Menu as MenuIcon,
-  Person as PersonIcon
-} from '@mui/icons-material';
-import { RootState, AppDispatch } from '../store';
-import { toggleCart } from '../store/cartSlice';
-import { useSelector } from 'react-redux';
-import LoginDialog from './LoginDialog'; // Assuming LoginDialog is a separate component
+  Person as PersonIcon,
+} from "@mui/icons-material";
+import { RootState, AppDispatch } from "../store";
+import { toggleCart } from "../store/cartSlice";
+import LoginDialog from "./LoginDialog"; // Assuming LoginDialog is a separate component
 
 export default function Header(): JSX.Element {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const cartItems = useSelector((state: RootState) => state.cart.items);
@@ -40,10 +39,10 @@ export default function Header(): JSX.Element {
   const user = useSelector((state: RootState) => state.user.currentUser);
 
   const menuItems = [
-    { text: 'Home', path: '/' },
-    { text: 'Products', path: '/products' },
-    { text: 'About', path: '/about' },
-    { text: 'Contact', path: '/contact' },
+    { text: "Home", path: "/" },
+    { text: "Products", path: "/products" },
+    { text: "About", path: "/about" },
+    { text: "Contact", path: "/contact" },
   ];
 
   const handleMenuClick = () => {
@@ -59,54 +58,54 @@ export default function Header(): JSX.Element {
     // Clear user from Redux store
     dispatch(clearUser());
     // Remove token from localStorage
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     // Navigate to home page
-    navigate('/');
+    navigate("/");
   };
 
   return (
-    <AppBar position="sticky" sx={{ bgcolor: 'background.paper' }}>
+    <AppBar position="sticky" sx={{ bgcolor: "background.paper" }}>
       <Container maxWidth="lg">
-        <Toolbar sx={{ justifyContent: 'space-between', py: { xs: 1, md: 2 } }}>
+        <Toolbar sx={{ justifyContent: "space-between", py: { xs: 1, md: 2 } }}>
           <Typography
             variant="h6"
             component={Link}
             to="/"
             sx={{
-              color: 'primary.main',
-              textDecoration: 'none',
+              color: "primary.main",
+              textDecoration: "none",
               fontWeight: 700,
-              fontSize: { xs: '1.2rem', md: '1.5rem' },
+              fontSize: { xs: "1.2rem", md: "1.5rem" },
             }}
           >
             Budaful Door Designs
           </Typography>
 
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
             {isMobile ? (
               <>
                 <IconButton
                   color="inherit"
                   aria-label="menu"
                   onClick={handleMenuClick}
-                  sx={{ mr: 1, color: 'text.primary' }}
+                  sx={{ mr: 1, color: "text.primary" }}
                 >
                   <MenuIcon />
                 </IconButton>
               </>
             ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
                 {menuItems.map((item) => (
                   <Button
                     key={item.text}
                     onClick={() => handleMenuItemClick(item.path)}
-                    sx={{ 
+                    sx={{
                       mx: 1,
-                      color: 'text.primary',
+                      color: "text.primary",
                       fontWeight: 500,
-                      '&:hover': {
-                        color: 'primary.main',
-                      }
+                      "&:hover": {
+                        color: "primary.main",
+                      },
                     }}
                   >
                     {item.text}
@@ -115,37 +114,37 @@ export default function Header(): JSX.Element {
               </Box>
             )}
 
-            <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
+            <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
               {user ? (
                 <>
                   {user.isAdmin && (
                     <Button
-                      onClick={() => navigate('/admin/dashboard')}
+                      onClick={() => navigate("/admin/dashboard")}
                       sx={{
                         mx: 1,
-                        color: 'primary.main',
-                        borderColor: 'primary.main',
-                        '&:hover': {
-                          backgroundColor: 'primary.main',
-                          color: 'white',
+                        color: "primary.main",
+                        borderColor: "primary.main",
+                        "&:hover": {
+                          backgroundColor: "primary.main",
+                          color: "white",
                         },
-                        variant: 'outlined'
+                        variant: "outlined",
                       }}
                     >
                       Admin Dashboard
                     </Button>
                   )}
                   <Button
-                    onClick={() => navigate('/profile')}
+                    onClick={() => navigate("/profile")}
                     sx={{
                       mx: 1,
-                      color: 'primary.main',
-                      borderColor: 'primary.main',
-                      '&:hover': {
-                        backgroundColor: 'primary.main',
-                        color: 'white',
+                      color: "primary.main",
+                      borderColor: "primary.main",
+                      "&:hover": {
+                        backgroundColor: "primary.main",
+                        color: "white",
                       },
-                      variant: 'outlined'
+                      variant: "outlined",
                     }}
                   >
                     Profile
@@ -154,13 +153,13 @@ export default function Header(): JSX.Element {
                     onClick={handleLogout}
                     sx={{
                       mx: 1,
-                      color: 'error.main',
-                      borderColor: 'error.main',
-                      '&:hover': {
-                        backgroundColor: 'error.main',
-                        color: 'white',
+                      color: "error.main",
+                      borderColor: "error.main",
+                      "&:hover": {
+                        backgroundColor: "error.main",
+                        color: "white",
                       },
-                      variant: 'outlined'
+                      variant: "outlined",
                     }}
                   >
                     Logout
@@ -172,13 +171,13 @@ export default function Header(): JSX.Element {
                   onClick={() => setLoginDialogOpen(true)}
                   sx={{
                     mx: 1,
-                    color: 'primary.main',
-                    borderColor: 'primary.main',
-                    '&:hover': {
-                      backgroundColor: 'primary.main',
-                      color: 'white',
+                    color: "primary.main",
+                    borderColor: "primary.main",
+                    "&:hover": {
+                      backgroundColor: "primary.main",
+                      color: "white",
                     },
-                    variant: 'outlined'
+                    variant: "outlined",
                   }}
                 >
                   Login
@@ -187,11 +186,11 @@ export default function Header(): JSX.Element {
               <IconButton
                 aria-label="cart"
                 onClick={() => dispatch(toggleCart())}
-                sx={{ 
-                  color: 'text.primary',
-                  '&:hover': {
-                    color: 'primary.main',
-                  }
+                sx={{
+                  color: "text.primary",
+                  "&:hover": {
+                    color: "primary.main",
+                  },
                 }}
               >
                 <Badge badgeContent={itemCount} color="secondary">
@@ -212,27 +211,27 @@ export default function Header(): JSX.Element {
           keepMounted: true,
         }}
         sx={{
-          display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': { 
-            boxSizing: 'border-box', 
+          display: { xs: "block", md: "none" },
+          "& .MuiDrawer-paper": {
+            boxSizing: "border-box",
             width: 240,
-            bgcolor: 'background.paper'
+            bgcolor: "background.paper",
           },
         }}
       >
         <Box sx={{ pt: 2 }}>
           <List>
             {menuItems.map((item) => (
-              <ListItem 
+              <ListItem
                 key={item.text}
                 onClick={() => handleMenuItemClick(item.path)}
-                sx={{ 
-                  color: 'primary.main',
-                  textDecoration: 'none',
-                  '&:hover': {
-                    bgcolor: 'action.hover',
-                    color: 'primary.dark',
-                  }
+                sx={{
+                  color: "primary.main",
+                  textDecoration: "none",
+                  "&:hover": {
+                    bgcolor: "action.hover",
+                    color: "primary.dark",
+                  },
                 }}
               >
                 <ListItemText primary={item.text} />
