@@ -141,14 +141,6 @@ export default function Profile() {
                     </Typography>
                     <Typography>{user.email}</Typography>
                   </Box>
-                  {user.phone && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography color="text.secondary" gutterBottom>
-                        Phone
-                      </Typography>
-                      <Typography>{user.phone}</Typography>
-                    </Box>
-                  )}
                   <Button
                     variant="outlined"
                     color="primary"
