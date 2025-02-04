@@ -14,12 +14,13 @@ import {
 import { Close as CloseIcon } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/userSlice";
+import { useNavigate } from "react-router-dom";
 
 interface LoginDialogProps {
   open: boolean;
   onClose: () => void;
 }
-//
+
 export default function LoginDialog({
   open,
   onClose,
@@ -27,6 +28,7 @@ export default function LoginDialog({
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -83,8 +85,23 @@ export default function LoginDialog({
 
       // Store token and user data
       localStorage.setItem("token", data.token);
-      dispatch(setUser(data.user));
+      dispatch(
+        setUser({
+          id: data.data.user.id,
+          email: data.data.user.email,
+          firstName: data.data.user.firstName,
+          lastName: data.data.user.lastName,
+          isAdmin: data.data.user.isAdmin || false,
+        })
+      );
       onClose();
+
+      // Redirect admin users to dashboard, regular users to profile
+      if (data.data.user.isAdmin) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/profile");
+      }
     } catch (err) {
       console.error("Auth error:", err);
       setError(err instanceof Error ? err.message : "Authentication failed");

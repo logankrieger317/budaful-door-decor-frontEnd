@@ -54,6 +54,10 @@ export default function Header(): JSX.Element {
     navigate(path);
   };
 
+  const handleLogout = () => {
+    // Implement logout logic here
+  };
+
   return (
     <AppBar position="sticky" sx={{ bgcolor: 'background.paper' }}>
       <Container maxWidth="lg">
@@ -107,19 +111,23 @@ export default function Header(): JSX.Element {
 
             <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
               {user ? (
-                <Button
-                  startIcon={<PersonIcon />}
-                  onClick={() => navigate('/profile')}
-                  sx={{ 
-                    mr: 2,
-                    color: 'text.primary',
-                    '&:hover': {
-                      color: 'primary.main',
-                    }
-                  }}
-                >
-                  {user.firstName}
-                </Button>
+                <>
+                  <Button
+                    color="inherit"
+                    component={Link}
+                    to={user.isAdmin ? "/admin/dashboard" : "/profile"}
+                    sx={{ ml: 2 }}
+                  >
+                    {user.isAdmin ? "Admin Dashboard" : "Profile"}
+                  </Button>
+                  <Button
+                    color="inherit"
+                    onClick={handleLogout}
+                    sx={{ ml: 2 }}
+                  >
+                    Logout
+                  </Button>
+                </>
               ) : (
                 <Button
                   startIcon={<PersonIcon />}
