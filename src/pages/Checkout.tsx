@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -22,8 +22,8 @@ import {
   Snackbar,
 } from "@mui/material";
 import { RootState } from "../store/store";
-import { clearCart } from "../store/cartSlice";
-import orderService, { Order } from "../services/orderService";
+// import { clearCart } from "../store/cartSlice";
+// import orderService, { Order } from "../services/orderService";
 import { CustomerInfo, CartItem } from "../types";
 
 const steps = ["Review Order", "Customer Information", "Confirm Order"];
@@ -47,7 +47,7 @@ export default function Checkout(): JSX.Element {
   const [shippingZip, setShippingZip] = useState("");
 
   const { items } = useSelector((state: RootState) => state.cart);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const total = items.reduce<number>(
@@ -89,7 +89,7 @@ export default function Checkout(): JSX.Element {
           customerInfo,
           items,
           total,
-          isPending: true
+          isPending: true,
         },
       });
     } catch (error) {
@@ -322,11 +322,13 @@ export default function Checkout(): JSX.Element {
           <form onSubmit={handleSubmit}>
             {getStepContent(activeStep)}
 
-            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-              <Button 
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}
+            >
+              <Button
                 type="button"
-                onClick={handleBack} 
-                sx={{ minWidth: 200 }} 
+                onClick={handleBack}
+                sx={{ minWidth: 200 }}
                 disabled={activeStep === 0}
               >
                 Back
