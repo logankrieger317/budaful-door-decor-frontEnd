@@ -24,7 +24,7 @@ import {
   Checkbox,
 } from "@mui/material";
 import { RootState } from "../store";
-// import { clearCart } from "../store/cartSlice";
+import { clearCart } from "../store/cartSlice";
 import { setUser } from "../store/userSlice";
 import { CartItem } from "../types";
 
@@ -135,9 +135,54 @@ export default function Checkout(): JSX.Element {
     setErrorMessage("");
 
     try {
+      // Create the order
+      const orderResponse = await fetch(process.env.REACT_APP_API_URL + "/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(user && { Authorization: `Bearer ${localStorage.getItem("token")}` }),
+        },
+        body: JSON.stringify({
+          customerEmail: email,
+          customerName: `${firstName} ${lastName}`,
+          shippingAddress: {
+            street: shippingAddress1,
+            city: shippingCity,
+            state: shippingState,
+            zipCode: shippingZip,
+          },
+          billingAddress: {
+            street: shippingAddress1,
+            city: shippingCity,
+            state: shippingState,
+            zipCode: shippingZip,
+          },
+          items: items.map(item => ({
+            productSku: item.sku,
+            quantity: item.quantity,
+            price: parseFloat(item.price.toString())
+          })),
+          phone,
+          notes,
+          totalAmount: parseFloat(total.toFixed(2)),
+          userId: user?.id
+        }),
+      });
+
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse.json();
+        throw new Error(errorData.message || "Failed to create order");
+      }
+
+      const { data: { order } } = await orderResponse.json();
+
+      // Clear cart after successful order
+      dispatch(clearCart());
+
       // Navigate to order confirmation
       navigate("/order-confirmation", {
         state: {
+          orderId: order.id,
           customerInfo: {
             email,
             firstName,
@@ -153,12 +198,12 @@ export default function Checkout(): JSX.Element {
           },
           items,
           total,
-          isPending: true,
+          isPending: false,
         },
       });
     } catch (error) {
       console.error("Error in checkout:", error);
-      setErrorMessage("An error occurred during checkout. Please try again.");
+      setErrorMessage(error instanceof Error ? error.message : "An error occurred during checkout. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
