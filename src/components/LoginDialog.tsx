@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -10,26 +10,29 @@ import {
   Box,
   IconButton,
   Alert,
-} from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
-import { useDispatch } from 'react-redux';
-import { setUser } from '../store/userSlice';
+} from "@mui/material";
+import { Close as CloseIcon } from "@mui/icons-material";
+import { useDispatch } from "react-redux";
+import { setUser } from "../store/userSlice";
 
 interface LoginDialogProps {
   open: boolean;
   onClose: () => void;
 }
-
-export default function LoginDialog({ open, onClose }: LoginDialogProps): JSX.Element {
+//
+export default function LoginDialog({
+  open,
+  onClose,
+}: LoginDialogProps): JSX.Element {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,41 +48,46 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps): JSX.El
     setError(null);
 
     try {
-      const apiUrl = "https://budafuldoordecorbackend-production.up.railway.app";
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      
-      console.log('Sending auth request to:', `${apiUrl}${endpoint}`);
+      const apiUrl =
+        "https://budafuldoordecorbackend-production.up.railway.app";
+      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+
+      console.log("Sending auth request to:", `${apiUrl}${endpoint}`);
 
       const response = await fetch(`${apiUrl}${endpoint}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(isLogin ? {
-          email: formData.email,
-          password: formData.password,
-        } : {
-          email: formData.email,
-          password: formData.password,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-        }),
+        body: JSON.stringify(
+          isLogin
+            ? {
+                email: formData.email,
+                password: formData.password,
+              }
+            : {
+                email: formData.email,
+                password: formData.password,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+              }
+        ),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('Auth error:', data);
-        throw new Error(data.message || 'Authentication failed');
+        console.error("Auth error:", data);
+        throw new Error(data.message || "Authentication failed");
       }
 
       // Store token and user data
-      localStorage.setItem('token', data.token);
+      localStorage.setItem("token", data.token);
       dispatch(setUser(data.user));
       onClose();
     } catch (err) {
-      console.error('Auth error:', err);
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+      console.error("Auth error:", err);
+      setError(err instanceof Error ? err.message : "Authentication failed");
     }
   };
 
@@ -87,7 +95,7 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps): JSX.El
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          {isLogin ? 'Login' : 'Create Account'}
+          {isLogin ? "Login" : "Create Account"}
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
@@ -154,7 +162,7 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps): JSX.El
                 color="primary"
                 sx={{ ml: 1 }}
               >
-                {isLogin ? 'Sign Up' : 'Login'}
+                {isLogin ? "Sign Up" : "Login"}
               </Button>
             </Typography>
           </Box>
@@ -164,7 +172,7 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps): JSX.El
             Cancel
           </Button>
           <Button type="submit" color="primary" variant="contained">
-            {isLogin ? 'Login' : 'Create Account'}
+            {isLogin ? "Login" : "Create Account"}
           </Button>
         </DialogActions>
       </form>
