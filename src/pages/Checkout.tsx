@@ -65,6 +65,10 @@ export default function Checkout(): JSX.Element {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    handleNext(); // Just move to the next step
+  };
+
+  const handlePlaceOrder = async () => {
     setIsSubmitting(true);
     setErrorMessage("");
 
@@ -83,7 +87,7 @@ export default function Checkout(): JSX.Element {
         notes,
       };
 
-      // Instead of creating the order here, just navigate to confirmation with the info
+      // Navigate to order confirmation
       navigate("/order-confirmation", {
         state: {
           customerInfo,
@@ -138,102 +142,100 @@ export default function Checkout(): JSX.Element {
 
   const renderCustomerInfoForm = () => {
     return (
-      <Box component="form" noValidate sx={{ mt: 3 }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              name="firstName"
-              label="First Name"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              name="lastName"
-              label="Last Name"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="email"
-              label="Email Address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="phone"
-              label="Phone Number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="shippingAddress1"
-              label="Street Address"
-              value={shippingAddress1}
-              onChange={(e) => setShippingAddress1(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              name="shippingCity"
-              label="City"
-              value={shippingCity}
-              onChange={(e) => setShippingCity(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              required
-              fullWidth
-              name="shippingState"
-              label="State"
-              value={shippingState}
-              onChange={(e) => setShippingState(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              required
-              fullWidth
-              name="shippingZip"
-              label="ZIP Code"
-              value={shippingZip}
-              onChange={(e) => setShippingZip(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              name="notes"
-              label="Order Notes (Optional)"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </Grid>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            fullWidth
+            name="firstName"
+            label="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
         </Grid>
-      </Box>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            fullWidth
+            name="lastName"
+            label="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            required
+            fullWidth
+            name="email"
+            label="Email Address"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            required
+            fullWidth
+            name="phone"
+            label="Phone Number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            required
+            fullWidth
+            name="shippingAddress1"
+            label="Street Address"
+            value={shippingAddress1}
+            onChange={(e) => setShippingAddress1(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            fullWidth
+            name="shippingCity"
+            label="City"
+            value={shippingCity}
+            onChange={(e) => setShippingCity(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            required
+            fullWidth
+            name="shippingState"
+            label="State"
+            value={shippingState}
+            onChange={(e) => setShippingState(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            required
+            fullWidth
+            name="shippingZip"
+            label="ZIP Code"
+            value={shippingZip}
+            onChange={(e) => setShippingZip(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            name="notes"
+            label="Order Notes (Optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </Grid>
+      </Grid>
     );
   };
 
@@ -319,41 +321,75 @@ export default function Checkout(): JSX.Element {
 
       <Card>
         <CardContent>
-          <form onSubmit={handleSubmit}>
-            {getStepContent(activeStep)}
-
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}
-            >
-              <Button
-                type="button"
-                onClick={handleBack}
-                sx={{ minWidth: 200 }}
-                disabled={activeStep === 0}
+          {activeStep === 1 ? (
+            <form onSubmit={handleSubmit}>
+              {renderCustomerInfoForm()}
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}
               >
-                Back
-              </Button>
-              {activeStep === steps.length - 1 ? (
+                <Button
+                  type="button"
+                  onClick={handleBack}
+                  sx={{ minWidth: 200 }}
+                >
+                  Back
+                </Button>
                 <Button
                   type="submit"
                   variant="contained"
                   sx={{ minWidth: 200 }}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Placing Order..." : "Place Order"}
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="contained"
-                  onClick={handleNext}
-                  sx={{ minWidth: 200 }}
+                  disabled={
+                    !firstName ||
+                    !lastName ||
+                    !email ||
+                    !phone ||
+                    !shippingAddress1 ||
+                    !shippingCity ||
+                    !shippingState ||
+                    !shippingZip
+                  }
                 >
                   Next
                 </Button>
-              )}
-            </Box>
-          </form>
+              </Box>
+            </form>
+          ) : (
+            <>
+              {getStepContent(activeStep)}
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}
+              >
+                <Button
+                  type="button"
+                  onClick={handleBack}
+                  sx={{ minWidth: 200 }}
+                  disabled={activeStep === 0}
+                >
+                  Back
+                </Button>
+                {activeStep === steps.length - 1 ? (
+                  <Button
+                    type="button"
+                    variant="contained"
+                    onClick={handlePlaceOrder}
+                    sx={{ minWidth: 200 }}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Placing Order..." : "Place Order"}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ minWidth: 200 }}
+                  >
+                    Next
+                  </Button>
+                )}
+              </Box>
+            </>
+          )}
         </CardContent>
       </Card>
 
