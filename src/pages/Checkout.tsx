@@ -170,7 +170,8 @@ export default function Checkout(): JSX.Element {
         })),
         phone,
         notes: notes || "",
-        totalAmount: Number(total.toFixed(2))
+        totalAmount: Number(total.toFixed(2)),
+        ...(user && { userId: user.id }) // Add userId if user is logged in
       };
 
       const response = await api.post('/orders', orderPayload);
