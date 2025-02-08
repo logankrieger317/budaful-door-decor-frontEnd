@@ -393,7 +393,7 @@ export default function Products(): JSX.Element {
           </Box>
         </Box>
 
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           {/* Filter Sidebar */}
           {!isMobile && (
             <Grid item xs={12} md={3}>
@@ -412,9 +412,9 @@ export default function Products(): JSX.Element {
                 No products found matching your criteria.
               </Typography>
             ) : (
-              <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
-                {filteredProducts.map((product) => (
-                  <Grid item xs={12} sm={6} md={4} key={product.sku}>
+              <Grid container spacing={3}>
+                {filteredProducts.map((product, index) => (
+                  <Grid item key={`product-grid-${product.sku}-${index}`} xs={12} sm={6} md={4} lg={3}>
                     <ProductCard product={product} />
                   </Grid>
                 ))}

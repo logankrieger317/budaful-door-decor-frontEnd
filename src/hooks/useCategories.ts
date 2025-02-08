@@ -42,7 +42,8 @@ const defaultCategories: Category[] = [
   },
 ];
 
-const formatCategoryName = (category: string): string => {
+const formatCategoryName = (category: string | undefined): string => {
+  if (!category) return '';
   return category
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -62,16 +63,14 @@ export function useCategories() {
         const products = await productsApi.getAllProducts();
         
         if (!products || products.length === 0) {
-
           setCategories(defaultCategories);
           return;
         }
 
         // Get unique categories
-        const uniqueCategories = Array.from(new Set(products.map(p => p.category)));
+        const uniqueCategories = Array.from(new Set(products.map(p => p.category))).filter(Boolean);
         
         if (uniqueCategories.length === 0) {
-
           setCategories(defaultCategories);
           return;
         }
@@ -79,7 +78,7 @@ export function useCategories() {
         // Format categories
         const formattedCategories = uniqueCategories.map(category => ({
           name: formatCategoryName(category),
-          image: '',
+          image: products.find(p => p.category === category)?.imageUrl || '',
           link: `/products?category=${category}`,
         }));
 

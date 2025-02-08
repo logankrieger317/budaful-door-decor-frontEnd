@@ -31,6 +31,53 @@ interface ProductCarouselProps {
   products: Product[];
 }
 
+interface CustomArrowProps {
+  onClick?: () => void;
+  className?: string;
+}
+
+const CustomPrevArrow: React.FC<CustomArrowProps> = ({ onClick, className }) => (
+  <IconButton
+    onClick={onClick}
+    sx={{
+      position: 'absolute',
+      left: 0,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      zIndex: 1,
+      color: 'primary.main',
+      bgcolor: 'background.paper',
+      '&:hover': {
+        bgcolor: 'background.paper',
+      },
+    }}
+    className={className}
+  >
+    <ChevronLeft />
+  </IconButton>
+);
+
+const CustomNextArrow: React.FC<CustomArrowProps> = ({ onClick, className }) => (
+  <IconButton
+    onClick={onClick}
+    sx={{
+      position: 'absolute',
+      right: 0,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      zIndex: 1,
+      color: 'primary.main',
+      bgcolor: 'background.paper',
+      '&:hover': {
+        bgcolor: 'background.paper',
+      },
+    }}
+    className={className}
+  >
+    <ChevronRight />
+  </IconButton>
+);
+
 const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -49,7 +96,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
       quantity: 1,
     };
     dispatch(addItem(cartItem));
-    navigate('/checkout');
+    navigate('/cart');
   };
 
   const handleAddToCart = (product: Product) => {
@@ -82,73 +129,29 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
     }
   };
 
-  const CustomPrevArrow = (props: any) => (
-    <IconButton
-      {...props}
-      sx={{
-        position: 'absolute',
-        left: '-40px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        zIndex: 1,
-        color: 'primary.main',
-        '&:hover': {
-          color: 'primary.dark',
-        },
-        display: { xs: 'none', md: 'flex' },
-      }}
-    >
-      <ChevronLeft />
-    </IconButton>
-  );
-
-  const CustomNextArrow = (props: any) => (
-    <IconButton
-      {...props}
-      sx={{
-        position: 'absolute',
-        right: '-40px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        zIndex: 1,
-        color: 'primary.main',
-        '&:hover': {
-          color: 'primary.dark',
-        },
-        display: { xs: 'none', md: 'flex' },
-      }}
-    >
-      <ChevronRight />
-    </IconButton>
-  );
-
   const settings = {
     dots: true,
-    infinite: true,
+    infinite: products.length > 3,
     speed: 500,
     slidesToShow: isMobile ? 1 : isTablet ? 2 : 3,
     slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 5000,
     prevArrow: <CustomPrevArrow />,
     nextArrow: <CustomNextArrow />,
+    adaptiveHeight: true,
+    useCSS: true,
     responsive: [
       {
-        breakpoint: 1024,
+        breakpoint: theme.breakpoints.values.md,
         settings: {
           slidesToShow: 2,
+          slidesToScroll: 1,
         },
       },
       {
-        breakpoint: 768,
+        breakpoint: theme.breakpoints.values.sm,
         settings: {
           slidesToShow: 1,
-        },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
+          slidesToScroll: 1,
         },
       },
     ],
@@ -167,28 +170,27 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
       </Typography>
       <Box sx={{ mx: { md: 5 } }}>
         <Slider {...settings}>
-          {products.map((product) => (
-            <Box key={product.sku} sx={{ px: 2 }}>
+          {products.map((product, index) => (
+            <Box key={`product-slide-${product.sku}-${index}`} sx={{ px: 2 }}>
               <Card
                 sx={{
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: 'transform 0.2s',
-                  '&:hover': {
-                    transform: 'scale(1.02)',
-                  },
+                  position: 'relative',
                 }}
               >
                 <CardMedia
                   component="img"
-                  height={200}
-                  image={product.imageUrl || '/images/placeholderImage.jpeg'}
+                  sx={{
+                    height: 200,
+                    objectFit: 'cover',
+                  }}
+                  image={product.imageUrl}
                   alt={product.name}
-                  sx={{ objectFit: 'cover' }}
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h6" component="h3">
+                  <Typography gutterBottom variant="h6" component="h2">
                     {product.name}
                   </Typography>
                   <Typography
