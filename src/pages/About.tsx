@@ -3,7 +3,20 @@ import { Container, Typography, Box, useTheme, alpha } from '@mui/material';
 export default function About(): JSX.Element {
   const theme = useTheme();
   return (
-    <Box sx={{ py: { xs: 4, md: 8 } }}>
+    <Box sx={{
+      minHeight: '100vh',
+      py: 8,
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: -1,
+      }
+    }}>
       {/* Hero Section */}
       <Box 
         sx={{ 

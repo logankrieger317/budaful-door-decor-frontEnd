@@ -11,6 +11,7 @@ import {
   Snackbar,
   Alert,
   MenuItem,
+  alpha,
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -66,7 +67,19 @@ export default function Contact(): JSX.Element {
   };
 
   return (
-    <Box sx={{ py: { xs: 4, md: 8 } }}>
+    <Box sx={{
+      py: { xs: 4, md: 8 },
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: -1,
+      }
+    }}>
       {/* Hero Section */}
       <Box 
         sx={{ 
@@ -74,9 +87,32 @@ export default function Contact(): JSX.Element {
           color: 'white',
           py: { xs: 6, md: 10 },
           mb: { xs: 4, md: 8 },
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `linear-gradient(135deg, ${alpha('#87A878', 0.4)} 0%, ${alpha('#B5C5AA', 0.2)} 100%)`,
+            zIndex: 0,
+          },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '120%',
+            height: '120%',
+            transform: 'translate(-50%, -50%)',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)',
+            zIndex: 1,
+          }
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
           <Typography 
             variant="h1" 
             sx={{ 
@@ -139,10 +175,13 @@ export default function Contact(): JSX.Element {
                     <Card 
                       sx={{ 
                         bgcolor: 'background.paper',
-                        transition: 'transform 0.2s',
+                        transition: 'all 0.3s ease',
+                        border: `1px solid ${alpha('#87A878', 0.1)}`,
+                        boxShadow: `0 8px 24px ${alpha('#000', 0.05)}`,
                         '&:hover': {
                           transform: 'translateY(-4px)',
-                          boxShadow: 3,
+                          boxShadow: `0 12px 32px ${alpha('#000', 0.1)}`,
+                          borderColor: alpha('#87A878', 0.2),
                         },
                       }}
                     >
@@ -210,6 +249,17 @@ export default function Contact(): JSX.Element {
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '12px',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: 'primary.main',
+                              }
+                            }
+                          }
+                        }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -272,8 +322,13 @@ export default function Contact(): JSX.Element {
                           py: 1.5,
                           mt: 2,
                           bgcolor: 'primary.main',
+                          borderRadius: '50px',
+                          boxShadow: `0 4px 14px ${alpha('#87A878', 0.4)}`,
+                          transition: 'all 0.3s ease',
                           '&:hover': {
                             bgcolor: 'primary.dark',
+                            transform: 'translateY(-2px)',
+                            boxShadow: `0 6px 20px ${alpha('#87A878', 0.6)}`,
                           },
                         }}
                       >

@@ -43,7 +43,18 @@ export default function Home(): JSX.Element {
   const featuredProducts = products?.slice(0, 8) || [];
 
   return (
-    <Box>
+    <Box sx={{
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: -1,
+      }
+    }}>
       <HeroSlider slides={heroSlides} fallbackImage={fallbackImage} />
       <CategoryNav />
       {categoriesLoading ? (

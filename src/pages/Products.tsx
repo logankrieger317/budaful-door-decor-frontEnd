@@ -204,7 +204,19 @@ export default function Products(): JSX.Element {
       <Divider sx={{ mb: 2 }} />
 
       {/* Price Range Filter */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{
+        py: { xs: 4, md: 8 },
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: -1,
+        }
+      }}>
         <Typography 
           variant="subtitle2" 
           gutterBottom
