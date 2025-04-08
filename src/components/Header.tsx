@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { alpha } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "../store/userSlice";
@@ -64,7 +65,13 @@ export default function Header(): JSX.Element {
   };
 
   return (
-    <AppBar position="sticky" sx={{ bgcolor: "background.paper" }}>
+    <AppBar 
+      position="sticky" 
+      sx={{ 
+        bgcolor: "background.paper",
+        boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.1)}`,
+        borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
+      }}>
       <Container maxWidth="lg">
         <Toolbar sx={{ justifyContent: "space-between", py: { xs: 1, md: 2 } }}>
           <Typography
@@ -72,10 +79,16 @@ export default function Header(): JSX.Element {
             component={Link}
             to="/"
             sx={{
-              color: "primary.main",
+              color: theme.palette.primary.main,
               textDecoration: "none",
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: { xs: "1.2rem", md: "1.5rem" },
+              fontFamily: '"Playfair Display", serif',
+              letterSpacing: "0.5px",
+              transition: "color 0.3s ease",
+              '&:hover': {
+                color: alpha(theme.palette.primary.main, 0.8),
+              }
             }}
           >
             Budaful Door Designs
@@ -100,11 +113,29 @@ export default function Header(): JSX.Element {
                     key={item.text}
                     onClick={() => handleMenuItemClick(item.path)}
                     sx={{
-                      mx: 1,
+                      mx: 1.5,
                       color: "text.primary",
                       fontWeight: 500,
+                      position: "relative",
+                      '&::after': {
+                        content: '""',
+                        position: "absolute",
+                        bottom: -2,
+                        left: "50%",
+                        width: 0,
+                        height: "2px",
+                        background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                        transition: "all 0.3s ease",
+                        transform: "translateX(-50%)",
+                        opacity: 0,
+                        borderRadius: "2px",
+                      },
                       "&:hover": {
-                        color: "primary.main",
+                        color: theme.palette.primary.main,
+                        '&::after': {
+                          width: "80%",
+                          opacity: 1,
+                        }
                       },
                     }}
                   >
@@ -122,11 +153,21 @@ export default function Header(): JSX.Element {
                       onClick={() => navigate("/admin/dashboard")}
                       sx={{
                         mx: 1,
-                        color: "primary.main",
-                        borderColor: "primary.main",
+                        color: theme.palette.primary.main,
+                        borderColor: alpha(theme.palette.primary.main, 0.5),
+                        borderRadius: "50px",
+                        padding: "6px 16px",
+                        textTransform: "none",
+                        fontSize: "0.95rem",
+                        fontWeight: 500,
+                        transition: "all 0.3s ease",
+                        background: alpha(theme.palette.primary.main, 0.02),
                         "&:hover": {
-                          backgroundColor: "primary.main",
+                          background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${alpha(theme.palette.primary.main, 0.9)})`,
                           color: "white",
+                          borderColor: "transparent",
+                          transform: "translateY(-1px)",
+                          boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.25)}`,
                         },
                         variant: "outlined",
                       }}
@@ -226,11 +267,13 @@ export default function Header(): JSX.Element {
                 key={item.text}
                 onClick={() => handleMenuItemClick(item.path)}
                 sx={{
-                  color: "primary.main",
-                  textDecoration: "none",
+                  color: "text.primary",
+                  borderRadius: "12px",
+                  mx: 1,
+                  transition: "all 0.3s ease",
                   "&:hover": {
-                    bgcolor: "action.hover",
-                    color: "primary.dark",
+                    background: alpha(theme.palette.primary.main, 0.08),
+                    color: theme.palette.primary.main,
                   },
                 }}
               >

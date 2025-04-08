@@ -18,6 +18,7 @@ import {
   useTheme,
   useMediaQuery,
   Divider,
+  alpha,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import CloseIcon from "@mui/icons-material/Close";
@@ -204,7 +205,16 @@ export default function Products(): JSX.Element {
 
       {/* Price Range Filter */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle2" gutterBottom>
+        <Typography 
+          variant="subtitle2" 
+          gutterBottom
+          sx={{ 
+            fontFamily: '"Playfair Display", serif',
+            color: theme.palette.primary.main,
+            fontSize: '1.1rem',
+            mb: 2
+          }}
+        >
           Price Range
         </Typography>
         <Slider
@@ -214,6 +224,20 @@ export default function Products(): JSX.Element {
           min={0}
           max={maxPrice}
           valueLabelFormat={(value) => `$${value}`}
+          sx={{
+            color: theme.palette.primary.main,
+            '& .MuiSlider-thumb': {
+              '&:hover, &.Mui-focusVisible': {
+                boxShadow: `0 0 0 8px ${alpha(theme.palette.primary.main, 0.16)}`,
+              },
+            },
+            '& .MuiSlider-valueLabel': {
+              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+              borderRadius: '8px',
+              padding: '4px 8px',
+              fontSize: '0.8rem',
+            }
+          }}
         />
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Typography variant="caption">${filters.priceRange[0]}</Typography>
@@ -228,6 +252,19 @@ export default function Products(): JSX.Element {
           multiple
           value={filters.colors}
           onChange={(e) => handleFilterChange("colors", e.target.value)}
+          sx={{
+            borderRadius: '12px',
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: alpha(theme.palette.primary.main, 0.2),
+              transition: 'border-color 0.3s ease-in-out',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: alpha(theme.palette.primary.main, 0.5),
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: theme.palette.primary.main,
+            },
+          }}
           renderValue={(selected) => (
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
               {selected.map((value) => (
@@ -293,6 +330,19 @@ export default function Products(): JSX.Element {
             lengthRange: [0, 100],
           })
         }
+        sx={{
+          borderRadius: '50px',
+          borderColor: alpha(theme.palette.primary.main, 0.3),
+          color: theme.palette.primary.main,
+          textTransform: 'none',
+          fontSize: '1rem',
+          fontWeight: 500,
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            borderColor: theme.palette.primary.main,
+            background: alpha(theme.palette.primary.main, 0.05),
+          }
+        }}
       >
         Reset Filters
       </Button>
@@ -333,7 +383,21 @@ export default function Products(): JSX.Element {
         keywords={`${categoryName.toLowerCase()}, door decorations, ribbons, crafting supplies`}
       />
 
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Container maxWidth="lg" sx={{ 
+        py: 8,
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.05)}, ${alpha(theme.palette.primary.main, 0.02)})`,
+          zIndex: -1,
+          borderRadius: '24px',
+        }
+      }}>
         <Box sx={{ 
           display: "flex", 
           flexDirection: { xs: "column", md: "row" },
@@ -345,9 +409,20 @@ export default function Products(): JSX.Element {
             component="h1"
             sx={{
               flexGrow: 1,
-              fontWeight: "bold",
-              color: "text.primary",
-              mb: { xs: 2, md: 0 }
+              fontWeight: 600,
+              color: theme.palette.primary.main,
+              mb: { xs: 2, md: 0 },
+              fontFamily: '"Playfair Display", serif',
+              position: 'relative',
+              '&::after': {
+                content: '""',
+                display: 'block',
+                width: '60px',
+                height: '2px',
+                background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                marginTop: '8px',
+                borderRadius: '2px',
+              }
             }}
           >
             {categoryName}
@@ -370,6 +445,19 @@ export default function Products(): JSX.Element {
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value as SortOption)}
                 label="Sort By"
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: alpha(theme.palette.primary.main, 0.2),
+                    transition: 'border-color 0.3s ease-in-out',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: alpha(theme.palette.primary.main, 0.5),
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: theme.palette.primary.main,
+                  },
+                  borderRadius: '12px',
+                }}
               >
                 <MenuItem value="name-asc">Name (A-Z)</MenuItem>
                 <MenuItem value="name-desc">Name (Z-A)</MenuItem>
@@ -382,9 +470,20 @@ export default function Products(): JSX.Element {
               <Button
                 startIcon={<FilterListIcon />}
                 onClick={() => setIsFilterDrawerOpen(true)}
-                variant="outlined"
+                variant="contained"
                 sx={{ 
-                  width: { xs: "100%", sm: "auto" }
+                  width: { xs: "100%", sm: "auto" },
+                  borderRadius: '50px',
+                  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                  boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.3)}`,
+                  transition: 'all 0.3s ease',
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
+                  }
                 }}
               >
                 Filters

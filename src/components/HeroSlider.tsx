@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import Slider from 'react-slick';
-import { Box, Typography, Button, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Typography, Button, useTheme, useMediaQuery, alpha } from '@mui/material';
+import { keyframes } from '@mui/system';
 
 interface Slide {
   image: string;
@@ -17,16 +18,23 @@ export default function HeroSlider({ slides, fallbackImage }: HeroSliderProps): 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  const fadeIn = keyframes`
+    from { opacity: 0; transform: scale(1.02); }
+    to { opacity: 1; transform: scale(1); }
+  `;
+
   const sliderSettings = {
     dots: true,
     infinite: true,
-    speed: 500,
+    speed: 800,
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 5000,
+    autoplaySpeed: 6000,
     arrows: !isMobile,
     adaptiveHeight: true,
+    fade: true,
+    cssEase: 'cubic-bezier(0.7, 0, 0.3, 1)',
   };
 
   return (
@@ -34,7 +42,12 @@ export default function HeroSlider({ slides, fallbackImage }: HeroSliderProps): 
       position: 'relative',
       width: '100%',
       height: { xs: '400px', sm: '500px', md: '600px' },
-      overflow: 'hidden'
+      overflow: 'hidden',
+      borderRadius: { xs: '0', sm: '16px' },
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+      my: { xs: 0, sm: 2 },
+      mx: 'auto',
+      maxWidth: '1600px'
     }}>
       <Slider {...sliderSettings}>
         {slides.map((slide, index) => (
@@ -50,6 +63,7 @@ export default function HeroSlider({ slides, fallbackImage }: HeroSliderProps): 
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
+                animation: `${fadeIn} 1s ease-out`,
               }}
             />
             <Box
@@ -64,7 +78,8 @@ export default function HeroSlider({ slides, fallbackImage }: HeroSliderProps): 
                 justifyContent: 'center',
                 alignItems: 'center',
                 textAlign: 'center',
-                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                background: `linear-gradient(to bottom, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.6)})`,
+                backdropFilter: 'blur(2px)',
                 color: 'white',
                 p: { xs: 2, sm: 3, md: 4 },
               }}
@@ -74,7 +89,10 @@ export default function HeroSlider({ slides, fallbackImage }: HeroSliderProps): 
                 sx={{ 
                   mb: { xs: 1, sm: 2 },
                   fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem' },
-                  fontWeight: 700,
+                  fontWeight: 600,
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+                  letterSpacing: '0.5px',
+                  fontFamily: '"Playfair Display", serif',
                 }}
               >
                 {slide.title}
@@ -99,7 +117,15 @@ export default function HeroSlider({ slides, fallbackImage }: HeroSliderProps): 
                   px: 4,
                   py: 1.5,
                   fontSize: '1.1rem',
-                  textTransform: 'none'
+                  textTransform: 'none',
+                  borderRadius: '50px',
+                  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                  boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.3)}`,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
+                  }
                 }}
               >
                 Shop Now
