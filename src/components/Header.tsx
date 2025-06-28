@@ -181,14 +181,22 @@ export default function Header(): JSX.Element {
                       mx: 1,
                       color: "primary.main",
                       borderColor: "primary.main",
+                      borderRadius: "50px",
+                      padding: "6px 16px",
+                      textTransform: "none",
+                      fontSize: "0.95rem",
+                      fontWeight: 500,
+                      background: alpha(theme.palette.primary.main, 0.05),
                       "&:hover": {
                         backgroundColor: "primary.main",
                         color: "white",
+                        transform: "translateY(-1px)",
+                        boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.25)}`,
                       },
                       variant: "outlined",
                     }}
                   >
-                    Profile
+                    My Dashboard
                   </Button>
                   <Button
                     onClick={handleLogout}
@@ -280,6 +288,87 @@ export default function Header(): JSX.Element {
                 <ListItemText primary={item.text} />
               </ListItem>
             ))}
+            
+            {/* User Account Section in Mobile Menu */}
+            {user ? (
+              <>
+                <ListItem
+                  onClick={() => handleMenuItemClick("/profile")}
+                  sx={{
+                    color: theme.palette.primary.main,
+                    borderRadius: "12px",
+                    mx: 1,
+                    mt: 2,
+                    background: alpha(theme.palette.primary.main, 0.05),
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      background: alpha(theme.palette.primary.main, 0.1),
+                    },
+                  }}
+                >
+                  <ListItemText 
+                    primary="My Dashboard" 
+                    secondary={`Welcome, ${user.firstName}!`}
+                  />
+                </ListItem>
+                {user.isAdmin && (
+                  <ListItem
+                    onClick={() => handleMenuItemClick("/admin/dashboard")}
+                    sx={{
+                      color: "text.primary",
+                      borderRadius: "12px",
+                      mx: 1,
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        background: alpha(theme.palette.primary.main, 0.08),
+                        color: theme.palette.primary.main,
+                      },
+                    }}
+                  >
+                    <ListItemText primary="Admin Dashboard" />
+                  </ListItem>
+                )}
+                <ListItem
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  sx={{
+                    color: "error.main",
+                    borderRadius: "12px",
+                    mx: 1,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      background: alpha(theme.palette.error.main, 0.08),
+                    },
+                  }}
+                >
+                  <ListItemText primary="Logout" />
+                </ListItem>
+              </>
+            ) : (
+              <ListItem
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setLoginDialogOpen(true);
+                }}
+                sx={{
+                  color: theme.palette.primary.main,
+                  borderRadius: "12px",
+                  mx: 1,
+                  mt: 2,
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.5)}`,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    background: theme.palette.primary.main,
+                    color: "white",
+                  },
+                }}
+              >
+                <ListItemText primary="Login / Register" />
+              </ListItem>
+            )}
           </List>
         </Box>
       </Drawer>

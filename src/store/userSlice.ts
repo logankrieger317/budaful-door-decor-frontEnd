@@ -25,6 +25,7 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     setUser: (state, action: PayloadAction<User>) => {
+      console.log('Setting user in store:', action.payload);
       state.currentUser = action.payload;
       state.error = null;
     },

@@ -53,8 +53,23 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps) {
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
+    event.stopPropagation();
+    
     setError('');
     setIsLoading(true);
+
+    console.log('Login attempt with:', { email: formData.email });
+    
+    // Validate required fields
+    if (!formData.email || !formData.password) {
+      alert('Please fill in both email and password');
+      setError('Please fill in both email and password');
+      setIsLoading(false);
+      return;
+    }
+    
+    // Add a small delay to ensure we can see logs
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
       const response = await api.post('/auth/login', {
@@ -62,9 +77,19 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps) {
         password: formData.password
       });
 
-      const { token, data } = response.data;
-      dispatch(setUser(data.user));
+      console.log('Login response:', response);
+
+      // Direct axios response, not wrapped
+      const { token, user } = response.data;
+      console.log('Login successful, user:', user);
+      // Remove alert after debugging
+      // alert('Login successful! Redirecting to dashboard...');
+      
+      dispatch(setUser(user));
       localStorage.setItem('token', token);
+      
+      // Add a small delay before navigation
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Close the dialog
       onClose();
@@ -72,17 +97,23 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps) {
       // Get the redirect location from state, or default to profile/admin dashboard
       const state = location.state as LocationState;
       if (state?.from) {
+        console.log('Redirecting to saved location:', state.from.pathname);
         navigate(state.from.pathname);
       } else {
         // Redirect based on user role
-        if (data.user.isAdmin) {
+        if (user.isAdmin) {
+          console.log('Redirecting admin to dashboard');
           navigate('/admin/dashboard');
         } else {
+          console.log('Redirecting user to profile');
           navigate('/profile');
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred');
+      console.error('Login error:', err);
+      // Remove alert after debugging
+      // alert('Login error: ' + (err.response?.data?.message || err.message || 'An error occurred'));
+      setError(err.response?.data?.message || err.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -90,14 +121,16 @@ export default function LoginDialog({ open, onClose }: LoginDialogProps) {
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
+    event.stopPropagation();
     setError('');
     setIsLoading(true);
 
     try {
       const response = await api.post('/auth/register', formData);
       
-      const { token, data } = response.data;
-      dispatch(setUser(data.user));
+      // Direct axios response, not wrapped  
+      const { token, user } = response.data;
+      dispatch(setUser(user));
       localStorage.setItem('token', token);
       
       // Close the dialog

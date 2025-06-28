@@ -14,8 +14,10 @@ import {
   CardContent,
   Divider,
   CircularProgress,
+  Chip,
 } from '@mui/material';
 import { RootState } from '../store';
+import api from '../utils/api';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -26,15 +28,20 @@ interface TabPanelProps {
 interface Order {
   id: string;
   status: string;
+  paymentStatus: string;
   totalAmount: number | string;
+  customerName: string;
+  customerEmail: string;
+  shippingAddress: string;
+  phone?: string;
+  notes?: string;
   createdAt: string;
+  updatedAt: string;
   items?: Array<{
     id: string;
+    productSku: string;
     quantity: number;
-    Product: {
-      name: string;
-      price: number;
-    };
+    priceAtTime: number;
   }>;
 }
 
@@ -70,21 +77,13 @@ export default function Profile() {
 
     const fetchOrders = async () => {
       try {
-        const response = await fetch(
-          `https://budafuldoordecorbackend-production.up.railway.app/api/orders/customer/${user.email}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch orders');
+        const response = await api.get(`/orders/user/${user.id}`);
+        
+        if (response.success) {
+          setOrders(response.data);
+        } else {
+          throw new Error(response.error || 'Failed to fetch orders');
         }
-
-        const data = await response.json();
-        setOrders(data.data.orders);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch orders');
       } finally {
@@ -123,6 +122,7 @@ export default function Profile() {
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label="Profile" />
+          <Tab label="Pending Orders" />
           <Tab label="Order History" />
         </Tabs>
 
@@ -172,69 +172,177 @@ export default function Profile() {
             <Typography color="error" sx={{ py: 2 }}>
               {error}
             </Typography>
-          ) : orders.length === 0 ? (
-            <Typography sx={{ py: 2 }}>No orders found</Typography>
           ) : (
             <Grid container spacing={3}>
-              {orders.map((order) => (
-                <Grid item xs={12} key={order.id}>
-                  <Card>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                        <Typography variant="h6">
-                          Order #{order.id.slice(0, 8)}
-                        </Typography>
-                        <Typography color="text.secondary">
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </Typography>
-                      </Box>
-                      <Divider sx={{ my: 2 }} />
-                      {order.items && order.items.length > 0 && (
-                        <Box sx={{ mb: 2 }}>
-                          <Typography color="text.secondary" gutterBottom>
-                            Items
-                          </Typography>
-                          {order.items.map((item) => (
-                            <Typography key={item.id}>
-                              {item.quantity}x {item.Product.name} - ${Number(item.Product.price).toFixed(2)}
-                            </Typography>
-                          ))}
-                        </Box>
-                      )}
-                      <Box sx={{ mb: 2 }}>
-                        <Typography color="text.secondary" gutterBottom>
-                          Status
-                        </Typography>
-                        <Typography
-                          sx={{
-                            color:
-                              order.status === 'delivered'
-                                ? 'success.main'
-                                : order.status === 'cancelled'
-                                ? 'error.main'
-                                : 'primary.main',
-                          }}
-                        >
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography color="text.secondary" gutterBottom>
-                          Total Amount
-                        </Typography>
-                        <Typography>${typeof order.totalAmount === 'string' ? order.totalAmount : Number(order.totalAmount).toFixed(2)}</Typography>
-                      </Box>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => navigate(`/order/${order.id}`)}
-                      >
-                        View Details
-                      </Button>
-                    </CardContent>
-                  </Card>
+              {orders.filter(order => ['pending', 'processing', 'shipped'].includes(order.status)).length === 0 ? (
+                <Grid item xs={12}>
+                  <Typography sx={{ py: 2 }}>No pending orders</Typography>
                 </Grid>
-              ))}
+              ) : (
+                orders
+                  .filter(order => ['pending', 'processing', 'shipped'].includes(order.status))
+                  .map((order) => (
+                    <Grid item xs={12} key={order.id}>
+                      <Card sx={{ border: '2px solid', borderColor: 'primary.main' }}>
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="h6">
+                              Order #{order.id.slice(0, 8)}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Chip 
+                                label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                color={
+                                  order.status === 'pending' ? 'warning' :
+                                  order.status === 'processing' ? 'info' :
+                                  order.status === 'shipped' ? 'success' : 'default'
+                                }
+                                size="small"
+                              />
+                              <Typography color="text.secondary" variant="body2">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Divider sx={{ my: 2 }} />
+                          
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} md={6}>
+                              <Typography color="text.secondary" gutterBottom>
+                                Items
+                              </Typography>
+                              {order.items && order.items.length > 0 ? (
+                                order.items.map((item, index) => (
+                                  <Typography key={index} variant="body2">
+                                    {item.quantity}x {item.productSku} - ${Number(item.priceAtTime).toFixed(2)}
+                                  </Typography>
+                                ))
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                  No items listed
+                                </Typography>
+                              )}
+                            </Grid>
+                            
+                            <Grid item xs={12} md={6}>
+                              <Typography color="text.secondary" gutterBottom>
+                                Shipping Address
+                              </Typography>
+                              <Typography variant="body2">{order.shippingAddress}</Typography>
+                              
+                              {order.phone && (
+                                <>
+                                  <Typography color="text.secondary" gutterBottom sx={{ mt: 1 }}>
+                                    Phone
+                                  </Typography>
+                                  <Typography variant="body2">{order.phone}</Typography>
+                                </>
+                              )}
+                            </Grid>
+                          </Grid>
+                          
+                          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="h6" color="primary">
+                              Total: ${typeof order.totalAmount === 'string' ? order.totalAmount : Number(order.totalAmount).toFixed(2)}
+                            </Typography>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => navigate(`/order/${order.id}`)}
+                            >
+                              View Details
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))
+              )}
+            </Grid>
+          )}
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={2}>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : error ? (
+            <Typography color="error" sx={{ py: 2 }}>
+              {error}
+            </Typography>
+          ) : (
+            <Grid container spacing={3}>
+              {orders.filter(order => ['delivered', 'cancelled'].includes(order.status)).length === 0 ? (
+                <Grid item xs={12}>
+                  <Typography sx={{ py: 2 }}>No completed orders</Typography>
+                </Grid>
+              ) : (
+                orders
+                  .filter(order => ['delivered', 'cancelled'].includes(order.status))
+                  .map((order) => (
+                    <Grid item xs={12} key={order.id}>
+                      <Card>
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="h6">
+                              Order #{order.id.slice(0, 8)}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                              <Chip 
+                                label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                color={order.status === 'delivered' ? 'success' : 'error'}
+                                size="small"
+                              />
+                              <Typography color="text.secondary" variant="body2">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Divider sx={{ my: 2 }} />
+                          
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} md={8}>
+                              <Typography color="text.secondary" gutterBottom>
+                                Items
+                              </Typography>
+                              {order.items && order.items.length > 0 ? (
+                                order.items.map((item, index) => (
+                                  <Typography key={index} variant="body2">
+                                    {item.quantity}x {item.productSku} - ${Number(item.priceAtTime).toFixed(2)}
+                                  </Typography>
+                                ))
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                  No items listed
+                                </Typography>
+                              )}
+                            </Grid>
+                            
+                            <Grid item xs={12} md={4}>
+                              <Typography color="text.secondary" gutterBottom>
+                                Total Amount
+                              </Typography>
+                              <Typography variant="h6">
+                                ${typeof order.totalAmount === 'string' ? order.totalAmount : Number(order.totalAmount).toFixed(2)}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                          
+                          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => navigate(`/order/${order.id}`)}
+                            >
+                              View Details
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))
+              )}
             </Grid>
           )}
         </TabPanel>

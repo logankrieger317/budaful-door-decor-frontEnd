@@ -43,11 +43,20 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuthStatus = async () => {
       const token = localStorage.getItem("token");
+      console.log('Checking auth status, token exists:', !!token);
+      
       if (token) {
         try {
           const response = await api.get("/auth/profile");
-          dispatch(setUser(response.data.data.user));
+          console.log('Auth check response:', response);
+          
+          // Direct axios response, extract user directly
+          dispatch(setUser(response.data.user));
+          console.log('User set from auth check:', response.data.user);
         } catch (error) {
+          console.error('Auth check error:', error);
+          // Clear invalid token
+          localStorage.removeItem("token");
           handleApiError(error);
         }
       }

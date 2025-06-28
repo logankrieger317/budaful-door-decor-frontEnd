@@ -195,8 +195,12 @@ export default function Checkout(): JSX.Element {
         ...(user && { userId: user.id }) // Add userId if user is logged in
       };
 
-      const response = await api.post('/orders', orderPayload);
-      const { data: { order } } = response.data;
+      // Use authenticated endpoint if user is logged in, guest endpoint otherwise
+      const endpoint = user ? '/orders' : '/orders/guest';
+      const response = await api.post(endpoint, orderPayload);
+      
+      // Handle different response structures
+      const order = user ? response.data : response.data.data.order;
 
       // Clear cart after successful order
       dispatch(clearCart());
