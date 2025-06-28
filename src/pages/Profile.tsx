@@ -79,11 +79,8 @@ export default function Profile() {
       try {
         const response = await api.get(`/orders/user/${user.id}`);
         
-        if (response.success) {
-          setOrders(response.data);
-        } else {
-          throw new Error(response.error || 'Failed to fetch orders');
-        }
+        // Direct axios response, extract data directly
+        setOrders(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch orders');
       } finally {
