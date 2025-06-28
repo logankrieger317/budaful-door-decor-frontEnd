@@ -32,6 +32,9 @@ import { useDispatch } from "react-redux";
 import { setUser } from "./store/userSlice";
 import api from "./utils/api";
 import { theme } from "./theme";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { NotificationProvider } from "./context/NotificationContext";
+import { handleApiError } from "./utils/errorHandler";
 
 // Separate component for auth logic
 function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -45,8 +48,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           const response = await api.get("/auth/profile");
           dispatch(setUser(response.data.data.user));
         } catch (error) {
-          console.error("Error checking auth status:", error);
-          localStorage.removeItem("token");
+          handleApiError(error);
         }
       }
     };
@@ -72,64 +74,66 @@ function AppRoutes() {
         bgcolor: "background.default",
       }}
     >
-      <Header />
-      {showCategoryNav && <CategoryNav />}
-      <Box component="main" sx={{ flex: 1, py: 4 }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/category/:categoryId" element={<Products />} />
-          <Route path="/product/:sku" element={<ProductDetail />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/order-confirmation" element={<OrderConfirmation />} />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/order/:orderId"
-            element={
-              <ProtectedRoute>
-                <OrderDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/products/:sku/edit"
-            element={
-              <ProtectedRoute requireAdmin>
-                <EditProduct />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/products/:productId"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminProductEditor />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Box>
-      <Cart />
-      <Footer />
+      <ErrorBoundary>
+        <Header />
+        {showCategoryNav && <CategoryNav />}
+        <Box component="main" sx={{ flex: 1, py: 4 }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/category/:categoryId" element={<Products />} />
+            <Route path="/product/:sku" element={<ProductDetail />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/order-confirmation" element={<OrderConfirmation />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/order/:orderId"
+              element={
+                <ProtectedRoute>
+                  <OrderDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/products/:sku/edit"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <EditProduct />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/products/:productId"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminProductEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Box>
+        <Cart />
+        <Footer />
+      </ErrorBoundary>
     </Box>
   );
 }
@@ -147,11 +151,15 @@ function AppContent() {
 function App(): JSX.Element {
   return (
     <Provider store={store}>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <HelmetProvider>
           <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <AppContent />
+            <NotificationProvider>
+              <CssBaseline />
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
+            </NotificationProvider>
           </ThemeProvider>
         </HelmetProvider>
       </Router>

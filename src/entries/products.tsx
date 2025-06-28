@@ -19,6 +19,7 @@ function ProductsApp() {
       <CategoryNav />
       <Box component="main" sx={{ flex: 1, py: 4 }}>
         <Routes>
+          <Route path="/" element={<Products />} />
           <Route path="*" element={<Products />} />
         </Routes>
       </Box>
@@ -31,7 +32,7 @@ function ProductsApp() {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>
-      <BrowserRouter basename="/products.html">
+      <BrowserRouter>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <ProductsApp />

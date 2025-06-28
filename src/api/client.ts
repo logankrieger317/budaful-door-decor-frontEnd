@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'https://budafuldoordecorbackend-production.up.railway.app';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -23,9 +23,9 @@ const client = axios.create({
 client.interceptors.request.use(
   (config) => {
     // You can modify the request config here
-    // For example, add auth token
+    // For example, add auth token (unless skipAuth is set)
     const token = localStorage.getItem('token');
-    if (token && config.headers) {
+    if (token && config.headers && !config.skipAuth) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     // Log the request for debugging
@@ -90,9 +90,13 @@ export const api = {
     }
   },
 
-  async post<T>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async post<T>(url: string, data?: any, options?: { skipAuth?: boolean }): Promise<ApiResponse<T>> {
     try {
-      const response = await client.post<T>(url, data);
+      const config = options?.skipAuth ? { 
+        headers: { 'Content-Type': 'application/json' },
+        skipAuth: true
+      } : {};
+      const response = await client.post<T>(url, data, config);
       return {
         success: true,
         data: response.data,

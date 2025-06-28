@@ -1,3 +1,4 @@
+# Enable rewrite engine
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
@@ -11,9 +12,12 @@
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     
     # If an existing asset or directory is requested go to it as it is
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^products(/.*)?$ /products.html [L]
+    RewriteRule ^about(/.*)?$ /about.html [L]
+    RewriteRule ^contact(/.*)?$ /contact.html [L]
+    RewriteRule ^checkout(/.*)?$ /checkout.html [L]
 
     # If the requested resource doesn't exist, use index.html
     RewriteRule ^ index.html [L]

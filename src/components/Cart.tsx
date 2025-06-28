@@ -56,6 +56,7 @@ const Cart: FC<CartProps> = ({ onClose }) => {
       anchor="right"
       open={isOpen}
       onClose={handleClose}
+      disableEnforceFocus
       sx={{
         '& .MuiDrawer-paper': {
           width: { xs: '100%', sm: 400 },
@@ -102,7 +103,7 @@ const Cart: FC<CartProps> = ({ onClose }) => {
                       ${item.price.toFixed(2)} x {item.quantity}
                     </Typography>
                     {item.customOptions && (
-                      <>
+                      <Box>
                         <Typography variant="body2" color="text.secondary">
                           Width: {item.customOptions.width}" | Length:{" "}
                           {item.customOptions.length}"
@@ -111,7 +112,7 @@ const Cart: FC<CartProps> = ({ onClose }) => {
                           Type:{" "}
                           {item.customOptions.isWired ? "Wired" : "Non-wired"}
                         </Typography>
-                      </>
+                      </Box>
                     )}
                   </>
                 }

@@ -26,7 +26,6 @@ const AdminLogin = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
     try {
       // The backend mounts auth routes at /api/auth/login
       const response = await api.post('/api/auth/login', {

@@ -1,7 +1,8 @@
-import axios from 'axios';
 import type { CartItem, CustomerInfo } from '../types';
+import { api } from '../api/client';
+import { handleApiError } from '../utils/errorHandler';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'https://budafuldoordecorbackend-production.up.railway.app';
 
 export interface OrderItem {
   id?: string;
@@ -51,9 +52,9 @@ export const orderService = {
           throw new Error(`Invalid price for item ${item.sku}`);
         }
         return {
-          productSku: item.sku,
+          productSku: item.sku || item.name || `product-${Date.now()}`,
           quantity: item.quantity,
-          price: price.toFixed(2)
+          price: price
         };
       });
 
@@ -79,38 +80,24 @@ export const orderService = {
         phone: customerInfo.phone,
         notes: customerInfo.notes,
         items: orderItems,
-        totalAmount: total.toFixed(2),
-        status: 'pending',
-        paymentStatus: 'pending'
+        totalAmount: total
       };
 
-      console.log('Sending order data to:', `${API_URL}/api/orders`);
-      console.log('Order data:', JSON.stringify(orderData, null, 2));
+      console.log('Sending order data:', JSON.stringify(orderData, null, 2));
+      console.log('Cart items:', JSON.stringify(cartItems, null, 2));
+      console.log('Customer info:', JSON.stringify(customerInfo, null, 2));
       
-      const response = await axios.post<ApiResponse<OrderResponse>>(`${API_URL}/api/orders`, orderData);
-      console.log('Server response:', JSON.stringify(response.data, null, 2));
+      // Use the configured API client without auth for guest orders
+      const response = await api.post<ApiResponse<OrderResponse>>('/api/orders/guest', orderData, { skipAuth: true });
 
-      if (response.data.status === 'success' && response.data.data.order) {
+      if (response.success && response.data.data.order) {
         return response.data.data.order;
       }
       
-      throw new Error('Invalid server response format');
+      throw new Error(response.error || 'Invalid server response format');
     } catch (error) {
       console.error('Error details:', error);
-      // Type guard for Axios error
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status?: number; data?: { message?: string } }; message?: string };
-        
-        if (axiosError.response?.status === 400) {
-          throw new Error(axiosError.response.data?.message || 'Invalid order data');
-        } else if (axiosError.response?.status === 404) {
-          throw new Error('Product not found');
-        } else if (axiosError.response?.status === 500) {
-          throw new Error('Server error while creating order');
-        }
-        throw new Error(axiosError.response?.data?.message || axiosError.message || 'Error creating order');
-      }
-      throw new Error('Error creating order');
+      return handleApiError(error);
     }
   }
 };

@@ -212,12 +212,12 @@ export default function Checkout(): JSX.Element {
       </Typography>
       <List disablePadding>
         {items.map((item: CartItem) => (
-          <ListItem key={item.id}>
+          <ListItem key={item.sku}>
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="body1">{item.name}</Typography>
               {item.options &&
                 Object.entries(item.options).map(([key, value]) => (
-                  <Typography key={key} variant="body2" color="text.secondary">
+                  <Typography key={`${item.sku}-${key}`} variant="body2" color="text.secondary">
                     {key}: {value}
                   </Typography>
                 ))}

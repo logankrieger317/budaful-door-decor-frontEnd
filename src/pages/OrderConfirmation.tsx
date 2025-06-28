@@ -9,12 +9,13 @@ import {
   Alert,
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { CustomerInfo } from "../types";
 import orderService from "../services/orderService";
 import { clearCart } from "../store/cartSlice";
 import { useState } from "react";
+import { RootState } from "../store/index";
 
 interface OrderConfirmationState {
   customerInfo: CustomerInfo;
@@ -33,6 +34,7 @@ export default function OrderConfirmation() {
   const [error, setError] = useState("");
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderNumber, setOrderNumber] = useState<string>("");
+  const user = useSelector((state: RootState) => state.user.currentUser);
 
   const handleContinueShopping = () => {
     navigate("/", { replace: true });
@@ -43,16 +45,22 @@ export default function OrderConfirmation() {
     setError("");
 
     try {
+      // Create order with guest flag if user is not authenticated
       const order = await orderService.createOrder(
         state.customerInfo,
         state.items
       );
+      
       setOrderNumber(order.id);
       setOrderConfirmed(true);
       dispatch(clearCart());
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating order:", error);
-      setError("Failed to place order. Please try again.");
+      if (error.name === 'AuthenticationError') {
+        setError("Authentication error. Please try again or proceed as a guest.");
+      } else {
+        setError(error.message || "Failed to place order. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -79,94 +87,102 @@ export default function OrderConfirmation() {
   }
 
   return (
-    <Container maxWidth="md">
-      <Box
-        sx={{
-          mt: 8,
-          mb: 4,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        {orderConfirmed ? (
-          <CheckCircleOutlineIcon
-            sx={{ fontSize: 64, color: "success.main", mb: 2 }}
-          />
-        ) : (
-          <Typography variant="h4" component="h1" gutterBottom>
-            Order Review
-          </Typography>
-        )}
-
-        {error && (
-          <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
-        {!orderConfirmed && (
-          <Alert 
-            severity="info" 
-            sx={{ 
-              width: "100%", 
-              mb: 4,
-              '& .MuiAlert-message': {
-                width: '100%'
-              }
-            }}
-          >
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium', color: 'primary.main' }}>
-              Thank you for considering our business!
-            </Typography>
-            <Typography variant="body1" paragraph>
-              We are a new business and still working with our partners to provide the lowest cost payment solution to keep our prices as low as possible.
-            </Typography>
-            <Typography variant="body1" paragraph>
-              By placing your order, we will be contacting you via phone and email to confirm the order and collect payment. We will request payment through Venmo or through a payment card over the phone which will be processed through our Square Terminal.
-            </Typography>
-            <Typography variant="body1">
-              We appreciate your understanding as we work to have our online payment system approved and implemented into the site.
-            </Typography>
-          </Alert>
-        )}
-
-        <Paper elevation={3} sx={{ width: "100%", mt: 4, p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            {orderConfirmed ? "Order Details" : "Review Your Order"}
-          </Typography>
-          <Divider sx={{ my: 2 }} />
-
-          {orderConfirmed && (
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Order Number
+    <Container maxWidth="sm">
+      <Box sx={{ mt: 8, mb: 4 }}>
+        <Paper sx={{ p: 4 }}>
+          {orderConfirmed ? (
+            <Box sx={{ textAlign: "center" }}>
+              <CheckCircleOutlineIcon
+                color="success"
+                sx={{ fontSize: 64, mb: 2 }}
+              />
+              <Typography variant="h4" gutterBottom>
+                Order Confirmed!
               </Typography>
-              <Typography variant="body1">{orderNumber}</Typography>
+              <Typography variant="body1" color="text.secondary" paragraph>
+                Your order number is: {orderNumber}
+              </Typography>
+              <Typography variant="body1" paragraph>
+                We'll send you an email confirmation shortly.
+              </Typography>
             </Box>
+          ) : (
+            <>
+              <Typography variant="h4" gutterBottom>
+                Order Summary
+              </Typography>
+              {error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                  {error}
+                </Alert>
+              )}
+              <Typography variant="body1" paragraph>
+                Please review your order details below:
+              </Typography>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Customer Information
+                </Typography>
+                <Typography>
+                  {state.customerInfo.firstName} {state.customerInfo.lastName}
+                </Typography>
+                <Typography>{state.customerInfo.email}</Typography>
+                <Typography>{state.customerInfo.phone}</Typography>
+              </Box>
+
+              <Divider sx={{ my: 3 }} />
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Shipping Address
+                </Typography>
+                <Typography>
+                  {state.customerInfo.address.street}
+                  <br />
+                  {state.customerInfo.address.city},{" "}
+                  {state.customerInfo.address.state}{" "}
+                  {state.customerInfo.address.zipCode}
+                </Typography>
+              </Box>
+
+              <Divider sx={{ my: 3 }} />
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Order Items
+                </Typography>
+                {state.items.map((item, index) => (
+                  <Box key={index} sx={{ mb: 1 }}>
+                    <Typography>
+                      {item.name} x {item.quantity}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      ${Number(item.price).toFixed(2)} each
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              <Divider sx={{ my: 3 }} />
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6">Total: ${state.total.toFixed(2)}</Typography>
+              </Box>
+
+              {state.customerInfo.notes && (
+                <>
+                  <Divider sx={{ my: 3 }} />
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Order Notes
+                    </Typography>
+                    <Typography>{state.customerInfo.notes}</Typography>
+                  </Box>
+                </>
+              )}
+            </>
           )}
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Total Amount
-            </Typography>
-            <Typography variant="body1">${state.total.toFixed(2)}</Typography>
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Shipping Address
-            </Typography>
-            <Typography variant="body1">
-              {state.customerInfo.firstName} {state.customerInfo.lastName}
-              <br />
-              {state.customerInfo.address.street}
-              <br />
-              {state.customerInfo.address.city},{" "}
-              {state.customerInfo.address.state}{" "}
-              {state.customerInfo.address.zipCode}
-            </Typography>
-          </Box>
 
           {!orderConfirmed && (
             <Box
