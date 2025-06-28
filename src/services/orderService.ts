@@ -2,7 +2,6 @@ import type { CartItem, CustomerInfo } from '../types';
 import { api } from '../api/client';
 import { handleApiError } from '../utils/errorHandler';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://budafuldoordecorbackend-production.up.railway.app';
 
 export interface OrderItem {
   id?: string;

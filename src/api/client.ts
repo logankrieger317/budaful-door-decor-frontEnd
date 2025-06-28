@@ -25,7 +25,7 @@ client.interceptors.request.use(
     // You can modify the request config here
     // For example, add auth token (unless skipAuth is set)
     const token = localStorage.getItem('token');
-    if (token && config.headers && !config.skipAuth) {
+    if (token && config.headers && !(config as any).skipAuth) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     // Log the request for debugging
@@ -95,7 +95,7 @@ export const api = {
       const config = options?.skipAuth ? { 
         headers: { 'Content-Type': 'application/json' },
         skipAuth: true
-      } : {};
+      } as any : {};
       const response = await client.post<T>(url, data, config);
       return {
         success: true,

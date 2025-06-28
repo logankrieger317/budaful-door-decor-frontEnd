@@ -34,7 +34,6 @@ export default function OrderConfirmation() {
   const [error, setError] = useState("");
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderNumber, setOrderNumber] = useState<string>("");
-  const user = useSelector((state: RootState) => state.user.currentUser);
 
   const handleContinueShopping = () => {
     navigate("/", { replace: true });
