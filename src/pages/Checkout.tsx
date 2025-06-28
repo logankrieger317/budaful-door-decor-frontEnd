@@ -87,7 +87,12 @@ export default function Checkout(): JSX.Element {
         localStorage.setItem("token", token);
       } catch (err: any) {
         console.error("Error creating account:", err);
-        setErrorMessage(err.response?.data?.message || "Failed to create account. Please try again.");
+        const errorMessage = err.response?.data?.message || "Failed to create account.";
+        
+        // Show a user-friendly message that allows them to continue
+        setErrorMessage(
+          `${errorMessage} You can uncheck "Create Account" below and click Next to continue as a guest.`
+        );
         setIsSubmitting(false);
         return;
       }
@@ -100,25 +105,41 @@ export default function Checkout(): JSX.Element {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
+  const handleSkipAccountCreation = () => {
+    setCreateAccount(false);
+    setPassword("");
+    setErrorMessage("");
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setErrorMessage("");
 
     try {
-      // If user wants to create an account
+      // If user wants to create an account, try to register but don't fail the order if it fails
       if (!user && createAccount) {
-        const registerResponse = await api.post('/auth/register', {
-          email,
-          password,
-          firstName,
-          lastName,
-          phone
-        });
+        try {
+          const registerResponse = await api.post('/auth/register', {
+            email,
+            password,
+            firstName,
+            lastName,
+            phone
+          });
 
-        const { token, data } = registerResponse.data;
-        dispatch(setUser(data.user));
-        localStorage.setItem("token", token);
+          const { token, data } = registerResponse.data;
+          dispatch(setUser(data.user));
+          localStorage.setItem("token", token);
+        } catch (registerError: any) {
+          console.warn("Account creation failed, proceeding as guest:", registerError);
+          // Show a non-blocking notification that account creation failed but order will continue
+          const errorMessage = registerError.response?.data?.message || "Failed to create account.";
+          setErrorMessage(`${errorMessage} Your order will be processed as a guest.`);
+          
+          // Continue with order processing as guest
+        }
       }
 
       // Navigate to order confirmation
@@ -524,11 +545,26 @@ export default function Checkout(): JSX.Element {
 
       <Snackbar
         open={!!errorMessage}
-        autoHideDuration={6000}
+        autoHideDuration={createAccount && errorMessage.includes("already registered") ? null : 6000}
         onClose={() => setErrorMessage("")}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity="error" onClose={() => setErrorMessage("")}>
+        <Alert 
+          severity="error" 
+          onClose={() => setErrorMessage("")}
+          action={
+            activeStep === 1 && createAccount && (errorMessage.includes("already registered") || errorMessage.includes("Failed to create account")) ? (
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={handleSkipAccountCreation}
+                sx={{ ml: 1 }}
+              >
+                Continue as Guest
+              </Button>
+            ) : null
+          }
+        >
           {errorMessage}
         </Alert>
       </Snackbar>
