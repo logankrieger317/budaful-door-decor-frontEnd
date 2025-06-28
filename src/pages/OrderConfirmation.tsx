@@ -9,13 +9,12 @@ import {
   Alert,
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { CustomerInfo } from "../types";
 import orderService from "../services/orderService";
 import { clearCart } from "../store/cartSlice";
 import { useState } from "react";
-import { RootState } from "../store/index";
 
 interface OrderConfirmationState {
   customerInfo: CustomerInfo;
